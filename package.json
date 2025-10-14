@@ -10,9 +10,14 @@
     "format": "biome format --write",
     "lint": "biome lint --write",
     "check": "biome check --write",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@orpc/client": "^1.9.4",
     "@orpc/json-schema": "^1.9.4",
     "@orpc/openapi": "^1.9.4",
@@ -36,6 +41,8 @@
     "@tanstack/router-plugin": "^1.132.56",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.6",
     "lucide-react": "^0.545.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -51,6 +58,8 @@
     "@types/node": "^24.7.2",
     "@types/react": "^19.2.2",
     "@vitejs/plugin-react": "^5.0.4",
+    "drizzle-kit": "^0.31.5",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^7.1.10"
   }

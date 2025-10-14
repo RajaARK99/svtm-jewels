@@ -1,20 +1,14 @@
-import { os } from '@orpc/server'
-import * as z from 'zod'
-
-const todos = [
-  { id: 1, name: 'Get groceries' },
-  { id: 2, name: 'Buy a new phone' },
-  { id: 3, name: 'Finish the project' },
-]
+import { os } from "@orpc/server";
+import * as z from "zod";
+import { db } from "@/db";
+import { todos } from "@/db/schema";
 
 export const listTodos = os.handler(() => {
-  return todos
-})
+  return db.query.todos.findMany();
+});
 
 export const addTodo = os
   .input(z.object({ name: z.string() }))
-  .handler(({ input }) => {
-    const newTodo = { id: todos.length + 1, name: input.name }
-    todos.push(newTodo)
-    return newTodo
-  })
+  .handler(async ({ input }) => {
+    return await db.insert(todos).values({ name: input.name }).returning();
+  });
