@@ -1,11 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-  '/_privateLayout/incentives/floor-incentives',
+	"/_privateLayout/incentives/floor-incentives",
 )({
-  component: RouteComponent,
-})
+	component: RouteComponent,
+});
 
 function RouteComponent() {
-  return <div>Hello "/_privateLayout/incentives/floor-incentives"!</div>
+	return <div>Hello "/_privateLayout/incentives/floor-incentives"!</div>;
 }
