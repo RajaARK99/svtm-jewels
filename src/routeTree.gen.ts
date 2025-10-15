@@ -9,13 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiSplatRouteImport } from './routes/api.$'
-import { Route as ApiRpcSplatRouteImport } from './routes/api.rpc.$'
+import { Route as PrivateLayoutRouteRouteImport } from './routes/_privateLayout/route'
+import { Route as PrivateLayoutIndexRouteImport } from './routes/_privateLayout/index'
+import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
+import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as PrivateLayoutSettingsRouteImport } from './routes/_privateLayout/settings'
+import { Route as PrivateLayoutEmployeesRouteImport } from './routes/_privateLayout/employees'
+import { Route as PrivateLayoutAttendanceRouteImport } from './routes/_privateLayout/attendance'
+import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc.$'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as PrivateLayoutIncentivesFloorIncentivesRouteImport } from './routes/_privateLayout/incentives/floor-incentives'
+import { Route as PrivateLayoutIncentivesConvertingIncentivesRouteImport } from './routes/_privateLayout/incentives/converting-incentives'
+import { Route as PrivateLayoutIncentivesChitIncentivesRouteImport } from './routes/_privateLayout/incentives/chit-incentives'
 
-const IndexRoute = IndexRouteImport.update({
+const PrivateLayoutRouteRoute = PrivateLayoutRouteRouteImport.update({
+  id: '/_privateLayout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivateLayoutIndexRoute = PrivateLayoutIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PrivateLayoutRouteRoute,
+} as any)
+const AuthSignInRoute = AuthSignInRouteImport.update({
+  id: '/auth/sign-in',
+  path: '/auth/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -23,49 +41,163 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivateLayoutSettingsRoute = PrivateLayoutSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PrivateLayoutRouteRoute,
+} as any)
+const PrivateLayoutEmployeesRoute = PrivateLayoutEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => PrivateLayoutRouteRoute,
+} as any)
+const PrivateLayoutAttendanceRoute = PrivateLayoutAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => PrivateLayoutRouteRoute,
+} as any)
 const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
   id: '/api/rpc/$',
   path: '/api/rpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivateLayoutIncentivesFloorIncentivesRoute =
+  PrivateLayoutIncentivesFloorIncentivesRouteImport.update({
+    id: '/incentives/floor-incentives',
+    path: '/incentives/floor-incentives',
+    getParentRoute: () => PrivateLayoutRouteRoute,
+  } as any)
+const PrivateLayoutIncentivesConvertingIncentivesRoute =
+  PrivateLayoutIncentivesConvertingIncentivesRouteImport.update({
+    id: '/incentives/converting-incentives',
+    path: '/incentives/converting-incentives',
+    getParentRoute: () => PrivateLayoutRouteRoute,
+  } as any)
+const PrivateLayoutIncentivesChitIncentivesRoute =
+  PrivateLayoutIncentivesChitIncentivesRouteImport.update({
+    id: '/incentives/chit-incentives',
+    path: '/incentives/chit-incentives',
+    getParentRoute: () => PrivateLayoutRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/attendance': typeof PrivateLayoutAttendanceRoute
+  '/employees': typeof PrivateLayoutEmployeesRoute
+  '/settings': typeof PrivateLayoutSettingsRoute
   '/api/$': typeof ApiSplatRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/': typeof PrivateLayoutIndexRoute
+  '/incentives/chit-incentives': typeof PrivateLayoutIncentivesChitIncentivesRoute
+  '/incentives/converting-incentives': typeof PrivateLayoutIncentivesConvertingIncentivesRoute
+  '/incentives/floor-incentives': typeof PrivateLayoutIncentivesFloorIncentivesRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/attendance': typeof PrivateLayoutAttendanceRoute
+  '/employees': typeof PrivateLayoutEmployeesRoute
+  '/settings': typeof PrivateLayoutSettingsRoute
   '/api/$': typeof ApiSplatRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/': typeof PrivateLayoutIndexRoute
+  '/incentives/chit-incentives': typeof PrivateLayoutIncentivesChitIncentivesRoute
+  '/incentives/converting-incentives': typeof PrivateLayoutIncentivesConvertingIncentivesRoute
+  '/incentives/floor-incentives': typeof PrivateLayoutIncentivesFloorIncentivesRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_privateLayout': typeof PrivateLayoutRouteRouteWithChildren
+  '/_privateLayout/attendance': typeof PrivateLayoutAttendanceRoute
+  '/_privateLayout/employees': typeof PrivateLayoutEmployeesRoute
+  '/_privateLayout/settings': typeof PrivateLayoutSettingsRoute
   '/api/$': typeof ApiSplatRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/_privateLayout/': typeof PrivateLayoutIndexRoute
+  '/_privateLayout/incentives/chit-incentives': typeof PrivateLayoutIncentivesChitIncentivesRoute
+  '/_privateLayout/incentives/converting-incentives': typeof PrivateLayoutIncentivesConvertingIncentivesRoute
+  '/_privateLayout/incentives/floor-incentives': typeof PrivateLayoutIncentivesFloorIncentivesRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/$' | '/api/rpc/$'
+  fullPaths:
+    | '/attendance'
+    | '/employees'
+    | '/settings'
+    | '/api/$'
+    | '/auth/sign-in'
+    | '/'
+    | '/incentives/chit-incentives'
+    | '/incentives/converting-incentives'
+    | '/incentives/floor-incentives'
+    | '/api/auth/$'
+    | '/api/rpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/$' | '/api/rpc/$'
-  id: '__root__' | '/' | '/api/$' | '/api/rpc/$'
+  to:
+    | '/attendance'
+    | '/employees'
+    | '/settings'
+    | '/api/$'
+    | '/auth/sign-in'
+    | '/'
+    | '/incentives/chit-incentives'
+    | '/incentives/converting-incentives'
+    | '/incentives/floor-incentives'
+    | '/api/auth/$'
+    | '/api/rpc/$'
+  id:
+    | '__root__'
+    | '/_privateLayout'
+    | '/_privateLayout/attendance'
+    | '/_privateLayout/employees'
+    | '/_privateLayout/settings'
+    | '/api/$'
+    | '/auth/sign-in'
+    | '/_privateLayout/'
+    | '/_privateLayout/incentives/chit-incentives'
+    | '/_privateLayout/incentives/converting-incentives'
+    | '/_privateLayout/incentives/floor-incentives'
+    | '/api/auth/$'
+    | '/api/rpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  PrivateLayoutRouteRoute: typeof PrivateLayoutRouteRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_privateLayout': {
+      id: '/_privateLayout'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof PrivateLayoutRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_privateLayout/': {
+      id: '/_privateLayout/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof PrivateLayoutIndexRouteImport
+      parentRoute: typeof PrivateLayoutRouteRoute
+    }
+    '/auth/sign-in': {
+      id: '/auth/sign-in'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -75,6 +207,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_privateLayout/settings': {
+      id: '/_privateLayout/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof PrivateLayoutSettingsRouteImport
+      parentRoute: typeof PrivateLayoutRouteRoute
+    }
+    '/_privateLayout/employees': {
+      id: '/_privateLayout/employees'
+      path: '/employees'
+      fullPath: '/employees'
+      preLoaderRoute: typeof PrivateLayoutEmployeesRouteImport
+      parentRoute: typeof PrivateLayoutRouteRoute
+    }
+    '/_privateLayout/attendance': {
+      id: '/_privateLayout/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof PrivateLayoutAttendanceRouteImport
+      parentRoute: typeof PrivateLayoutRouteRoute
+    }
     '/api/rpc/$': {
       id: '/api/rpc/$'
       path: '/api/rpc/$'
@@ -82,12 +235,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_privateLayout/incentives/floor-incentives': {
+      id: '/_privateLayout/incentives/floor-incentives'
+      path: '/incentives/floor-incentives'
+      fullPath: '/incentives/floor-incentives'
+      preLoaderRoute: typeof PrivateLayoutIncentivesFloorIncentivesRouteImport
+      parentRoute: typeof PrivateLayoutRouteRoute
+    }
+    '/_privateLayout/incentives/converting-incentives': {
+      id: '/_privateLayout/incentives/converting-incentives'
+      path: '/incentives/converting-incentives'
+      fullPath: '/incentives/converting-incentives'
+      preLoaderRoute: typeof PrivateLayoutIncentivesConvertingIncentivesRouteImport
+      parentRoute: typeof PrivateLayoutRouteRoute
+    }
+    '/_privateLayout/incentives/chit-incentives': {
+      id: '/_privateLayout/incentives/chit-incentives'
+      path: '/incentives/chit-incentives'
+      fullPath: '/incentives/chit-incentives'
+      preLoaderRoute: typeof PrivateLayoutIncentivesChitIncentivesRouteImport
+      parentRoute: typeof PrivateLayoutRouteRoute
+    }
   }
 }
 
+interface PrivateLayoutRouteRouteChildren {
+  PrivateLayoutAttendanceRoute: typeof PrivateLayoutAttendanceRoute
+  PrivateLayoutEmployeesRoute: typeof PrivateLayoutEmployeesRoute
+  PrivateLayoutSettingsRoute: typeof PrivateLayoutSettingsRoute
+  PrivateLayoutIndexRoute: typeof PrivateLayoutIndexRoute
+  PrivateLayoutIncentivesChitIncentivesRoute: typeof PrivateLayoutIncentivesChitIncentivesRoute
+  PrivateLayoutIncentivesConvertingIncentivesRoute: typeof PrivateLayoutIncentivesConvertingIncentivesRoute
+  PrivateLayoutIncentivesFloorIncentivesRoute: typeof PrivateLayoutIncentivesFloorIncentivesRoute
+}
+
+const PrivateLayoutRouteRouteChildren: PrivateLayoutRouteRouteChildren = {
+  PrivateLayoutAttendanceRoute: PrivateLayoutAttendanceRoute,
+  PrivateLayoutEmployeesRoute: PrivateLayoutEmployeesRoute,
+  PrivateLayoutSettingsRoute: PrivateLayoutSettingsRoute,
+  PrivateLayoutIndexRoute: PrivateLayoutIndexRoute,
+  PrivateLayoutIncentivesChitIncentivesRoute:
+    PrivateLayoutIncentivesChitIncentivesRoute,
+  PrivateLayoutIncentivesConvertingIncentivesRoute:
+    PrivateLayoutIncentivesConvertingIncentivesRoute,
+  PrivateLayoutIncentivesFloorIncentivesRoute:
+    PrivateLayoutIncentivesFloorIncentivesRoute,
+}
+
+const PrivateLayoutRouteRouteWithChildren =
+  PrivateLayoutRouteRoute._addFileChildren(PrivateLayoutRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  PrivateLayoutRouteRoute: PrivateLayoutRouteRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,
+  AuthSignInRoute: AuthSignInRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
 export const routeTree = rootRouteImport
