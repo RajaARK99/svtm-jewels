@@ -1,4 +1,4 @@
-import { useLocation, useParams } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
 import { HomeIcon, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";

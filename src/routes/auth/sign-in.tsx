@@ -1,6 +1,6 @@
 import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { GemIcon } from "lucide-react";
 import { toast } from "sonner";
 import z from "zod";
@@ -15,9 +15,24 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
+import { getUserID } from "@/lib/auth-server-func";
 
 export const Route = createFileRoute("/auth/sign-in")({
 	component: RouteComponent,
+	beforeLoad: async () => {
+		const userID = await getUserID();
+		return {
+			userID,
+		};
+	},
+	loader: async ({ context }) => {
+		if (context.userID) {
+			throw redirect({ to: "/" });
+		}
+		return {
+			userID: context.userID,
+		};
+	},
 });
 
 function RouteComponent() {

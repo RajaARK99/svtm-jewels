@@ -9,7 +9,6 @@ import {
 	HandCoins,
 	PieChart,
 	SettingsIcon,
-	SquareTerminal,
 } from "lucide-react";
 import type * as React from "react";
 
