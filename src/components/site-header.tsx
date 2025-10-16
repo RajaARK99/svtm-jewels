@@ -1,5 +1,6 @@
 import { useLocation } from "@tanstack/react-router";
 import { HomeIcon, Moon, Sun } from "lucide-react";
+import { Fragment } from "react/jsx-runtime";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -25,7 +26,6 @@ function segmentToTitle(segment: string) {
 export function SiteHeader() {
 	const { setTheme } = useTheme();
 	const location = useLocation();
-	console.log({ location });
 
 	const segments = location.pathname.split("/").filter(Boolean);
 	const crumbs = segments.map((seg, idx) => {
@@ -48,7 +48,7 @@ export function SiteHeader() {
 
 				<Breadcrumb>
 					<BreadcrumbList>
-						<BreadcrumbItem>
+						<BreadcrumbItem key={"home"}>
 							<BreadcrumbLink href="/">
 								<HomeIcon size={16} aria-hidden="true" />
 								<span className="sr-only">Home</span>
@@ -58,8 +58,8 @@ export function SiteHeader() {
 							<BreadcrumbSeparator> / </BreadcrumbSeparator>
 						)}
 						{crumbs.map((c) => (
-							<>
-								<BreadcrumbItem key={c.href}>
+							<Fragment key={c.href}>
+								<BreadcrumbItem>
 									{c.isLast ? (
 										<BreadcrumbPage>{c.label}</BreadcrumbPage>
 									) : (
@@ -67,7 +67,7 @@ export function SiteHeader() {
 									)}
 								</BreadcrumbItem>
 								{!c.isLast && <BreadcrumbSeparator> / </BreadcrumbSeparator>}
-							</>
+							</Fragment>
 						))}
 					</BreadcrumbList>
 				</Breadcrumb>

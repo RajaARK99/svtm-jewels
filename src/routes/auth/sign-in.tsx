@@ -170,7 +170,7 @@ function RouteComponent() {
 						</Field>
 					</form>
 				</div>
-				<div className="hidden overflow-hidden rounded-lg border bg-muted p-2 lg:block">
+				<div className="hidden overflow-hidden rounded-lg border bg-amber-500/10 p-2 lg:block">
 					<img
 						src={jewelLogin}
 						alt="Jewelry showcase"
