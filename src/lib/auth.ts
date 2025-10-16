@@ -3,22 +3,17 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { reactStartCookies } from "better-auth/react-start";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { serverEnv } from "@/env/server";
+import "dotenv/config";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema,
 	}),
-	trustedOrigins: [process.env.CORS_ORIGIN || ""],
+	trustedOrigins: [serverEnv.CORS_ORIGIN],
 	emailAndPassword: {
 		enabled: true,
-	},
-	advanced: {
-		defaultCookieAttributes: {
-			sameSite: "none",
-			secure: true,
-			httpOnly: true,
-		},
 	},
 	plugins: [reactStartCookies()],
 });
