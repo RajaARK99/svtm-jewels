@@ -1,7 +1,8 @@
 import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { GemIcon } from "lucide-react";
+import { Eye, EyeOff, GemIcon, Lock, Mail } from "lucide-react";
+import React from "react";
 import { toast } from "sonner";
 import z from "zod";
 import jewelLogin from "@/assets/images/jewel-login.jpg";
@@ -12,7 +13,12 @@ import {
 	FieldError,
 	FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { getUserID } from "@/lib/auth-server-func";
@@ -39,6 +45,7 @@ function RouteComponent() {
 	const navigate = useNavigate({
 		from: "/auth/sign-in",
 	});
+	const [showPassword, setShowPassword] = React.useState(false);
 	const { mutate, isPending } = useMutation({
 		mutationKey: ["login"],
 		mutationFn: async (values: { email: string; password: string }) => {
@@ -105,15 +112,20 @@ function RouteComponent() {
 								return (
 									<Field>
 										<FieldLabel htmlFor="email">Email</FieldLabel>
-										<Input
-											id="email"
-											type="email"
-											placeholder="m@example.com"
-											value={field.state.value}
-											onChange={(e) => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-											autoComplete="off"
-										/>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<Mail className="text-muted-foreground" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="email"
+												type="email"
+												placeholder="m@example.com"
+												value={field.state.value}
+												onChange={(e) => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+												autoComplete="off"
+											/>
+										</InputGroup>
 
 										{field.state.meta.isTouched && !field.state.meta.isValid ? (
 											<FieldError errors={field.state.meta.errors} />
@@ -128,22 +140,43 @@ function RouteComponent() {
 									<Field>
 										<div className="flex items-center">
 											<FieldLabel htmlFor="password">Password</FieldLabel>
-											<a
-												href="#"
+											<button
+												type="button"
 												className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
 											>
 												Forgot your password?
-											</a>
+											</button>
 										</div>
-										<Input
-											id="password"
-											type="password"
-											placeholder="********"
-											value={field.state.value}
-											onChange={(e) => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-											autoComplete="off"
-										/>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<Lock className="text-muted-foreground" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="password"
+												type={showPassword ? "text" : "password"}
+												placeholder="••••••••"
+												value={field.state.value}
+												onChange={(e) => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+												autoComplete="off"
+											/>
+											<InputGroupAddon align="inline-end">
+												<InputGroupButton
+													size="icon-xs"
+													variant="ghost"
+													onClick={() => setShowPassword(!showPassword)}
+													aria-label={
+														showPassword ? "Hide password" : "Show password"
+													}
+												>
+													{showPassword ? (
+														<EyeOff className="text-muted-foreground" />
+													) : (
+														<Eye className="text-muted-foreground" />
+													)}
+												</InputGroupButton>
+											</InputGroupAddon>
+										</InputGroup>
 
 										{field.state.meta.isTouched && !field.state.meta.isValid ? (
 											<FieldError errors={field.state.meta.errors} />
@@ -165,7 +198,10 @@ function RouteComponent() {
 								Login with Google
 							</Button>
 							<FieldDescription className="text-center">
-								Don&apos;t have an account? <a href="#">Sign up</a>
+								Don&apos;t have an account?{" "}
+								<button type="button" className="underline hover:no-underline">
+									Sign up
+								</button>
 							</FieldDescription>
 						</Field>
 					</form>

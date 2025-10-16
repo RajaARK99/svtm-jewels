@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, lte, or, sql } from "drizzle-orm";
 import z from "zod";
 import { db } from "@/db";
 import {
@@ -6,14 +6,13 @@ import {
 	attendanceCode,
 	attendanceEntry,
 	businessUnit,
+	convertingIncentives,
+	convertingType,
 	department,
 	employee,
 	jobTitle,
 	legalEntity,
 	location,
-	convertingIncentives,
-	convertingMetricType,
-	convertingMetricsDetail,
 } from "@/db/schema";
 import { user } from "@/db/schema/auth";
 import { o, publicProcedure } from "@/orpc";
@@ -229,18 +228,20 @@ const attendanceRouter = o.router({
 					});
 				}
 
-				const record = recordsMap.get(row.id)!;
-				if (
-					row.codeId &&
-					row.codeDescription &&
-					row.codeValue &&
-					!record.codes.find((c) => c.id === row.codeId)
-				) {
-					record.codes.push({
-						id: row.codeId,
-						description: row.codeDescription,
-						code: row.codeValue,
-					});
+				const record = recordsMap.get(row.id);
+				if (record) {
+					if (
+						row.codeId &&
+						row.codeDescription &&
+						row.codeValue &&
+						!record.codes.find((c) => c.id === row.codeId)
+					) {
+						record.codes.push({
+							id: row.codeId,
+							description: row.codeDescription,
+							code: row.codeValue,
+						});
+					}
 				}
 			}
 
@@ -402,6 +403,7 @@ const convertingIncentivesRouter = o.router({
 				filters: z
 					.object({
 						employeeName: z.string().optional(),
+						type: z.string().optional(),
 						startDate: z.string().optional(),
 						endDate: z.string().optional(),
 					})
@@ -422,6 +424,9 @@ const convertingIncentivesRouter = o.router({
 
 			const whereClauses = [
 				queryWhere,
+				filters.type
+					? eq(convertingIncentives.typeId, filters.type)
+					: undefined,
 				filters.startDate
 					? gte(convertingIncentives.date, filters.startDate)
 					: undefined,
@@ -430,9 +435,12 @@ const convertingIncentivesRouter = o.router({
 					: undefined,
 			].filter((c): c is Exclude<typeof c, undefined> => Boolean(c));
 
-			const finalWhere = whereClauses.length ? and(...whereClauses) : undefined;
+			const finalWhere =
+				whereClauses.length > 0 ? and(...whereClauses) : undefined;
 
-			const totalQuery = db.select({ value: count() }).from(convertingIncentives);
+			const totalQuery = db
+				.select({ value: count() })
+				.from(convertingIncentives);
 			const totalRows = finalWhere
 				? await totalQuery.where(finalWhere).execute()
 				: await totalQuery.execute();
@@ -444,29 +452,20 @@ const convertingIncentivesRouter = o.router({
 					date: convertingIncentives.date,
 					userName: user.name,
 					userEmail: user.email,
-					userId: convertingIncentives.userId,
-					goldWeight: convertingIncentives.goldWeight,
-					coinWeight: convertingIncentives.coinWeight,
-					diamondWeight: convertingIncentives.diamondWeight,
-					silverAntiqueWeight: convertingIncentives.silverAntiqueWeight,
-					silverWeight: convertingIncentives.silverWeight,
-					salesIncentiveGold: convertingIncentives.salesIncentiveGold,
-					salesIncentiveGoldCoin: convertingIncentives.salesIncentiveGoldCoin,
-					salesIncentiveDiamond: convertingIncentives.salesIncentiveDiamond,
-					salesIncentiveSilverAntique:
-						convertingIncentives.salesIncentiveSilverAntique,
-					salesIncentiveSilver: convertingIncentives.salesIncentiveSilver,
-					totalIncentive: convertingIncentives.totalIncentive,
-					staff94Percent: convertingIncentives.staff94Percent,
-					staff6Percent: convertingIncentives.staff6Percent,
-					absentStaff94: convertingIncentives.absentStaff94,
-					absentStaff6: convertingIncentives.absentStaff6,
-					incentivePerStaff94: convertingIncentives.incentivePerStaff94,
-					incentivePerStaff6: convertingIncentives.incentivePerStaff6,
+					employeeId: convertingIncentives.employeeId,
+					typeId: convertingIncentives.typeId,
+					typeName: convertingType.name,
+					weight: convertingIncentives.weight,
+					visit: convertingIncentives.visit,
+					amount: convertingIncentives.amount,
 					createdAt: convertingIncentives.createdAt,
 				})
 				.from(convertingIncentives)
-				.innerJoin(user, eq(convertingIncentives.userId, user.id))
+				.innerJoin(user, eq(convertingIncentives.employeeId, user.id))
+				.innerJoin(
+					convertingType,
+					eq(convertingIncentives.typeId, convertingType.id),
+				)
 				.orderBy(desc(convertingIncentives.date))
 				.limit(pageSize)
 				.offset(offset);
@@ -481,85 +480,51 @@ const convertingIncentivesRouter = o.router({
 	create: publicProcedure
 		.input(
 			z.object({
-				userId: z.string(),
+				employeeId: z.string(),
 				date: z.string(),
-				goldWeight: z.string().optional(),
-				coinWeight: z.string().optional(),
-				diamondWeight: z.string().optional(),
-				silverAntiqueWeight: z.string().optional(),
-				silverWeight: z.string().optional(),
-				salesIncentiveGold: z.string().optional(),
-				salesIncentiveGoldCoin: z.string().optional(),
-				salesIncentiveDiamond: z.string().optional(),
-				salesIncentiveSilverAntique: z.string().optional(),
-				salesIncentiveSilver: z.string().optional(),
-				totalIncentive: z.string().optional(),
-				staff94Percent: z.number().optional(),
-				staff6Percent: z.number().optional(),
-				absentStaff94: z.number().optional(),
-				absentStaff6: z.number().optional(),
-				incentivePerStaff94: z.string().optional(),
-				incentivePerStaff6: z.string().optional(),
+				typeId: z.string(),
+				weight: z.string(),
+				visit: z.number(),
+				amount: z.string(),
 			}),
 		)
 		.handler(async ({ input }) => {
-			const {
-				userId,
-				date,
-				goldWeight,
-				coinWeight,
-				diamondWeight,
-				silverAntiqueWeight,
-				silverWeight,
-				salesIncentiveGold,
-				salesIncentiveGoldCoin,
-				salesIncentiveDiamond,
-				salesIncentiveSilverAntique,
-				salesIncentiveSilver,
-				totalIncentive,
-				staff94Percent,
-				staff6Percent,
-				absentStaff94,
-				absentStaff6,
-				incentivePerStaff94,
-				incentivePerStaff6,
-			} = input;
+			const { employeeId, date, typeId, weight, visit, amount } = input;
 
 			try {
-				// Validate user exists
-				const userExists = await db
+				// Validate employee exists
+				const employeeExists = await db
 					.select()
 					.from(user)
-					.where(eq(user.id, userId))
+					.where(eq(user.id, employeeId))
 					.limit(1)
 					.execute();
 
-				if (!userExists || userExists.length === 0) {
-					throw new Error(`User with ID ${userId} does not exist`);
+				if (!employeeExists || employeeExists.length === 0) {
+					throw new Error(`Employee with ID ${employeeId} does not exist`);
+				}
+
+				// Validate type exists
+				const typeExists = await db
+					.select()
+					.from(convertingType)
+					.where(eq(convertingType.id, typeId))
+					.limit(1)
+					.execute();
+
+				if (!typeExists || typeExists.length === 0) {
+					throw new Error(`Converting type with ID ${typeId} does not exist`);
 				}
 
 				const id = `ci_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 				await db.insert(convertingIncentives).values({
 					id,
-					userId,
+					employeeId,
 					date,
-					goldWeight,
-					coinWeight,
-					diamondWeight,
-					silverAntiqueWeight,
-					silverWeight,
-					salesIncentiveGold,
-					salesIncentiveGoldCoin,
-					salesIncentiveDiamond,
-					salesIncentiveSilverAntique,
-					salesIncentiveSilver,
-					totalIncentive,
-					staff94Percent,
-					staff6Percent,
-					absentStaff94,
-					absentStaff6,
-					incentivePerStaff94,
-					incentivePerStaff6,
+					typeId,
+					weight: weight || "0",
+					visit,
+					amount: amount || "0",
 				});
 
 				return {
@@ -580,28 +545,16 @@ const convertingIncentivesRouter = o.router({
 		.input(
 			z.object({
 				id: z.string(),
+				employeeId: z.string().optional(),
 				date: z.string().optional(),
-				goldWeight: z.string().optional(),
-				coinWeight: z.string().optional(),
-				diamondWeight: z.string().optional(),
-				silverAntiqueWeight: z.string().optional(),
-				silverWeight: z.string().optional(),
-				salesIncentiveGold: z.string().optional(),
-				salesIncentiveGoldCoin: z.string().optional(),
-				salesIncentiveDiamond: z.string().optional(),
-				salesIncentiveSilverAntique: z.string().optional(),
-				salesIncentiveSilver: z.string().optional(),
-				totalIncentive: z.string().optional(),
-				staff94Percent: z.number().optional(),
-				staff6Percent: z.number().optional(),
-				absentStaff94: z.number().optional(),
-				absentStaff6: z.number().optional(),
-				incentivePerStaff94: z.string().optional(),
-				incentivePerStaff6: z.string().optional(),
+				typeId: z.string().optional(),
+				weight: z.string().optional(),
+				visit: z.number().optional(),
+				amount: z.string().optional(),
 			}),
 		)
 		.handler(async ({ input }) => {
-			const { id, ...updateData } = input;
+			const { id, employeeId, date, typeId, weight, visit, amount } = input;
 
 			try {
 				// Validate record exists
@@ -618,13 +571,42 @@ const convertingIncentivesRouter = o.router({
 					);
 				}
 
-				// Build update object, only including provided fields
-				const updateObject: Record<string, any> = {};
-				Object.entries(updateData).forEach(([key, value]) => {
-					if (value !== undefined) {
-						updateObject[key] = value;
+				// Validate employee exists if provided
+				if (employeeId) {
+					const employeeExists = await db
+						.select()
+						.from(user)
+						.where(eq(user.id, employeeId))
+						.limit(1)
+						.execute();
+
+					if (!employeeExists || employeeExists.length === 0) {
+						throw new Error(`Employee with ID ${employeeId} does not exist`);
 					}
-				});
+				}
+
+				// Validate type exists if provided
+				if (typeId) {
+					const typeExists = await db
+						.select()
+						.from(convertingType)
+						.where(eq(convertingType.id, typeId))
+						.limit(1)
+						.execute();
+
+					if (!typeExists || typeExists.length === 0) {
+						throw new Error(`Converting type with ID ${typeId} does not exist`);
+					}
+				}
+
+				// Build update object, only including provided fields
+				const updateObject: Record<string, string | number | undefined> = {};
+				if (employeeId !== undefined) updateObject.employeeId = employeeId;
+				if (date !== undefined) updateObject.date = date;
+				if (typeId !== undefined) updateObject.typeId = typeId;
+				if (weight !== undefined) updateObject.weight = weight;
+				if (visit !== undefined) updateObject.visit = visit;
+				if (amount !== undefined) updateObject.amount = amount;
 
 				if (Object.keys(updateObject).length > 0) {
 					await db
@@ -647,6 +629,23 @@ const convertingIncentivesRouter = o.router({
 				throw new Error(errorMessage);
 			}
 		}),
+	getTypes: publicProcedure.handler(async () => {
+		try {
+			const types = await db
+				.select({
+					id: convertingType.id,
+					name: convertingType.name,
+					description: convertingType.description,
+				})
+				.from(convertingType)
+				.execute();
+
+			return types;
+		} catch (error) {
+			console.error("Error fetching converting types:", error);
+			throw new Error("Failed to fetch converting types");
+		}
+	}),
 });
 
 const optionsRouter = o.router({
@@ -698,6 +697,348 @@ const optionsRouter = o.router({
 			.execute();
 		return rows;
 	}),
+	convertingTypes: publicProcedure.handler(async () => {
+		const rows = await db
+			.select()
+			.from(convertingType)
+			.orderBy(convertingType.name)
+			.execute();
+		return rows;
+	}),
+});
+
+const dashboardRouter = o.router({
+	// Get summary metrics
+	metrics: publicProcedure.handler(async () => {
+		try {
+			// Total Revenue
+			const revenueResult = await db
+				.select({
+					total: sql<string>`COALESCE(SUM(${convertingIncentives.amount}), '0')`,
+				})
+				.from(convertingIncentives)
+				.execute();
+			const totalRevenue = Number.parseFloat(revenueResult[0]?.total || "0");
+
+			// Total Weight
+			const weightResult = await db
+				.select({
+					total: sql<string>`COALESCE(SUM(${convertingIncentives.weight}), '0')`,
+				})
+				.from(convertingIncentives)
+				.execute();
+			const totalWeight = Number.parseFloat(weightResult[0]?.total || "0");
+
+			// Total Employees
+			const employeeCountResult = await db
+				.select({ value: count() })
+				.from(employee)
+				.execute();
+			const totalEmployees = employeeCountResult[0]?.value || 0;
+
+			// Total Visits
+			const visitsResult = await db
+				.select({
+					total: sql<number>`COALESCE(SUM(${convertingIncentives.visit}), 0)`,
+				})
+				.from(convertingIncentives)
+				.execute();
+			const totalVisits = visitsResult[0]?.total || 0;
+
+			// Average Revenue per Visit
+			const avgPerVisit = totalVisits > 0 ? totalRevenue / totalVisits : 0;
+
+			// Total Attendance Records
+			const attendanceCountResult = await db
+				.select({ value: count() })
+				.from(attendance)
+				.execute();
+			const totalAttendanceRecords = attendanceCountResult[0]?.value || 0;
+
+			// Unique employees with attendance
+			const uniqueAttendanceResult = await db
+				.select({
+					uniqueCount: sql<number>`COUNT(DISTINCT ${attendance.userId})`,
+				})
+				.from(attendance)
+				.execute();
+			const employeesWithAttendance =
+				uniqueAttendanceResult[0]?.uniqueCount || 0;
+
+			return {
+				totalRevenue,
+				totalWeight,
+				totalEmployees,
+				totalVisits,
+				avgPerVisit,
+				totalAttendanceRecords,
+				employeesWithAttendance,
+			};
+		} catch (error) {
+			console.error("Error fetching dashboard metrics:", error);
+			throw new Error("Failed to fetch dashboard metrics");
+		}
+	}),
+
+	// Get revenue trend (last 30 days)
+	revenueTrend: publicProcedure.handler(async () => {
+		try {
+			const thirtyDaysAgo = new Date();
+			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+			const data = await db
+				.select({
+					date: convertingIncentives.date,
+					amount: sql<string>`COALESCE(SUM(${convertingIncentives.amount}), '0')`,
+					weight: sql<string>`COALESCE(SUM(${convertingIncentives.weight}), '0')`,
+					visits: sql<number>`COALESCE(SUM(${convertingIncentives.visit}), 0)`,
+				})
+				.from(convertingIncentives)
+				.where(
+					gte(
+						convertingIncentives.date,
+						thirtyDaysAgo.toISOString().split("T")[0],
+					),
+				)
+				.groupBy(convertingIncentives.date)
+				.orderBy(convertingIncentives.date)
+				.execute();
+
+			return data.map((item) => ({
+				date: item.date,
+				amount: Number.parseFloat(item.amount),
+				weight: Number.parseFloat(item.weight),
+				visits: item.visits,
+			}));
+		} catch (error) {
+			console.error("Error fetching revenue trend:", error);
+			throw new Error("Failed to fetch revenue trend");
+		}
+	}),
+
+	// Get revenue distribution by type
+	typeDistribution: publicProcedure.handler(async () => {
+		try {
+			const data = await db
+				.select({
+					name: convertingType.name,
+					value: sql<string>`COALESCE(SUM(${convertingIncentives.amount}), '0')`,
+					count: sql<number>`COUNT(${convertingIncentives.id})`,
+				})
+				.from(convertingIncentives)
+				.innerJoin(
+					convertingType,
+					eq(convertingIncentives.typeId, convertingType.id),
+				)
+				.groupBy(convertingType.name)
+				.orderBy(sql`SUM(${convertingIncentives.amount}) DESC`)
+				.execute();
+
+			return data.map((item) => ({
+				name: item.name,
+				value: Number.parseFloat(item.value),
+				count: item.count,
+			}));
+		} catch (error) {
+			console.error("Error fetching type distribution:", error);
+			throw new Error("Failed to fetch type distribution");
+		}
+	}),
+
+	// Get top employees by revenue
+	topEmployees: publicProcedure
+		.input(
+			z.object({
+				limit: z.number().int().min(1).max(100).default(10),
+			}),
+		)
+		.handler(async ({ input }) => {
+			try {
+				const data = await db
+					.select({
+						employeeId: convertingIncentives.employeeId,
+						employeeName: user.name,
+						employeeEmail: user.email,
+						revenue: sql<string>`COALESCE(SUM(${convertingIncentives.amount}), '0')`,
+						weight: sql<string>`COALESCE(SUM(${convertingIncentives.weight}), '0')`,
+						visits: sql<number>`COALESCE(SUM(${convertingIncentives.visit}), 0)`,
+						recordCount: sql<number>`COUNT(${convertingIncentives.id})`,
+					})
+					.from(convertingIncentives)
+					.innerJoin(user, eq(convertingIncentives.employeeId, user.id))
+					.groupBy(convertingIncentives.employeeId, user.id)
+					.orderBy(sql`SUM(${convertingIncentives.amount}) DESC`)
+					.limit(input.limit)
+					.execute();
+
+				return data.map((item) => ({
+					employeeId: item.employeeId,
+					employeeName: item.employeeName,
+					employeeEmail: item.employeeEmail,
+					revenue: Number.parseFloat(item.revenue),
+					weight: Number.parseFloat(item.weight),
+					visits: item.visits,
+					recordCount: item.recordCount,
+				}));
+			} catch (error) {
+				console.error("Error fetching top employees:", error);
+				throw new Error("Failed to fetch top employees");
+			}
+		}),
+
+	// Get attendance statistics
+	attendanceStats: publicProcedure.handler(async () => {
+		try {
+			// Total attendance records
+			const totalRecordsResult = await db
+				.select({ value: count() })
+				.from(attendance)
+				.execute();
+			const totalRecords = totalRecordsResult[0]?.value || 0;
+
+			// Unique employees with attendance
+			const uniqueEmployeesResult = await db
+				.select({
+					count: sql<number>`COUNT(DISTINCT ${attendance.userId})`,
+				})
+				.from(attendance)
+				.execute();
+			const employeesWithRecords = uniqueEmployeesResult[0]?.count || 0;
+
+			// Total employees
+			const totalEmployeesResult = await db
+				.select({ value: count() })
+				.from(employee)
+				.execute();
+			const totalEmployees = totalEmployeesResult[0]?.value || 0;
+
+			// Employees without attendance records
+			const employeesWithoutRecords = totalEmployees - employeesWithRecords;
+
+			// Get attendance by code
+			const codeDistribution = await db
+				.select({
+					codeName: attendanceCode.description,
+					code: attendanceCode.code,
+					count: sql<number>`COUNT(${attendanceEntry.id})`,
+				})
+				.from(attendanceEntry)
+				.innerJoin(
+					attendanceCode,
+					eq(attendanceEntry.attendanceCodeId, attendanceCode.id),
+				)
+				.groupBy(
+					attendanceCode.id,
+					attendanceCode.description,
+					attendanceCode.code,
+				)
+				.orderBy(sql`COUNT(${attendanceEntry.id}) DESC`)
+				.execute();
+
+			return {
+				totalRecords,
+				employeesWithRecords,
+				employeesWithoutRecords,
+				totalEmployees,
+				codeDistribution,
+			};
+		} catch (error) {
+			console.error("Error fetching attendance stats:", error);
+			throw new Error("Failed to fetch attendance stats");
+		}
+	}),
+
+	// Get daily employee count trends
+	employeeTrend: publicProcedure.handler(async () => {
+		try {
+			const thirtyDaysAgo = new Date();
+			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+			const data = await db
+				.select({
+					date: attendance.date,
+					presentCount: sql<number>`COUNT(DISTINCT ${attendance.userId})`,
+				})
+				.from(attendance)
+				.where(gte(attendance.date, thirtyDaysAgo.toISOString().split("T")[0]))
+				.groupBy(attendance.date)
+				.orderBy(attendance.date)
+				.execute();
+
+			return data;
+		} catch (error) {
+			console.error("Error fetching employee trend:", error);
+			throw new Error("Failed to fetch employee trend");
+		}
+	}),
+
+	// Get summary overview
+	overview: publicProcedure.handler(async () => {
+		try {
+			const metrics = await db
+				.select({
+					totalRevenue: sql<string>`COALESCE(SUM(${convertingIncentives.amount}), '0')`,
+					totalWeight: sql<string>`COALESCE(SUM(${convertingIncentives.weight}), '0')`,
+					totalVisits: sql<number>`COALESCE(SUM(${convertingIncentives.visit}), 0)`,
+					recordCount: count(),
+				})
+				.from(convertingIncentives)
+				.execute();
+
+			const employeeMetrics = await db
+				.select({
+					totalEmployees: count(),
+				})
+				.from(employee)
+				.execute();
+
+			const attendanceMetrics = await db
+				.select({
+					totalAttendance: count(),
+					uniqueEmployees: sql<number>`COUNT(DISTINCT ${attendance.userId})`,
+				})
+				.from(attendance)
+				.execute();
+
+			const conversionTypes = await db
+				.select({
+					count: count(),
+				})
+				.from(convertingType)
+				.execute();
+
+			return {
+				revenue: {
+					total: Number.parseFloat(metrics[0]?.totalRevenue || "0"),
+					avgPerVisit:
+						(metrics[0]?.totalVisits || 0) > 0
+							? Number.parseFloat(metrics[0]?.totalRevenue || "0") /
+								(metrics[0]?.totalVisits || 1)
+							: 0,
+				},
+				weight: {
+					total: Number.parseFloat(metrics[0]?.totalWeight || "0"),
+				},
+				employees: {
+					total: employeeMetrics[0]?.totalEmployees || 0,
+					withAttendance: attendanceMetrics[0]?.uniqueEmployees || 0,
+					withoutAttendance:
+						(employeeMetrics[0]?.totalEmployees || 0) -
+						(attendanceMetrics[0]?.uniqueEmployees || 0),
+				},
+				attendance: {
+					records: attendanceMetrics[0]?.totalAttendance || 0,
+				},
+				conversions: {
+					recordCount: metrics[0]?.recordCount || 0,
+					typeCount: conversionTypes[0]?.count || 0,
+				},
+			};
+		} catch (error) {
+			console.error("Error fetching dashboard overview:", error);
+			throw new Error("Failed to fetch dashboard overview");
+		}
+	}),
 });
 
 const router = o.router({
@@ -705,6 +1046,7 @@ const router = o.router({
 	attendance: attendanceRouter,
 	convertingIncentives: convertingIncentivesRouter,
 	options: optionsRouter,
+	dashboard: dashboardRouter,
 });
 
 export default router;

@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -33,15 +40,27 @@ function RouteComponent() {
 	const navigate = useNavigate({ from: Route.fullPath });
 	const queryClient = useQueryClient();
 
+	// Generate skeleton IDs
+	const skeletonIds = React.useMemo(
+		() =>
+			Array.from(
+				{ length: 5 },
+				() => `skeleton-${Math.random().toString(36).substr(2, 9)}`,
+			),
+		[],
+	);
+
 	// Local state for immediate UI feedback
 	const [searchInput, setSearchInput] = React.useState("");
 
 	const [filter, setFilter] = React.useState<{
 		query: string;
-		startDate: Date | undefined;
-		endDate: Date | undefined;
+		type: string;
+		startDate: string | undefined;
+		endDate: string | undefined;
 	}>({
 		query: "",
+		type: "",
 		startDate: undefined,
 		endDate: undefined,
 	});
@@ -64,10 +83,19 @@ function RouteComponent() {
 		| {
 				id: string;
 				date: string;
-				userId: string;
+				employeeId: string;
+				typeId: string;
+				weight: string;
+				visit: number;
+				amount: string;
 		  }
 		| undefined
 	>(undefined);
+
+	// Fetch converting types for filter dropdown
+	const typesQuery = useQuery(
+		orpc.convertingIncentives.getTypes.queryOptions(),
+	);
 
 	const convertingIncentivesQuery = useQuery(
 		orpc.convertingIncentives.list.queryOptions({
@@ -75,33 +103,50 @@ function RouteComponent() {
 				page,
 				pageSize,
 				filters: {
-					employeeName: filter.query,
-					startDate: filter.startDate ? filter.startDate.toISOString() : undefined,
-					endDate: filter.endDate ? filter.endDate.toISOString() : undefined,
+					employeeName: searchInput,
+					type: filter.type && filter.type !== "All" ? filter.type : undefined,
+					startDate: filter.startDate,
+					endDate: filter.endDate,
 				},
 			},
 		}),
 	);
 
-	const handleStartDateChange = (startDate: Date | undefined) => {
+	const handleStartDateChange = (date: Date | undefined) => {
 		setFilter((prev) => ({
 			...prev,
-			startDate,
+			startDate: date ? date.toISOString().split("T")[0] : undefined,
 		}));
 	};
 
-	const handleEndDateChange = (endDate: Date | undefined) => {
+	const handleEndDateChange = (date: Date | undefined) => {
 		setFilter((prev) => ({
 			...prev,
-			endDate,
+			endDate: date ? date.toISOString().split("T")[0] : undefined,
 		}));
 	};
 
-	const handleEdit = (record: any) => {
+	const handleEdit = (record: {
+		id: string;
+		date: string;
+		employeeId: string;
+		typeId: string;
+		weight: string;
+		visit: number;
+		amount: string;
+		userName: string;
+		userEmail: string;
+		typeName: string;
+		createdAt: Date;
+	}) => {
 		setEditingRecord({
 			id: record.id,
 			date: record.date,
-			userId: record.userId,
+			employeeId: record.employeeId,
+			typeId: record.typeId,
+			weight: record.weight,
+			visit: record.visit,
+			amount: record.amount,
 		});
 		setFormOpen(true);
 	};
@@ -133,14 +178,14 @@ function RouteComponent() {
 
 	const formatCurrency = (value: string | number | null | undefined) => {
 		if (!value) return "0.00";
-		const num = typeof value === "string" ? parseFloat(value) : value;
+		const num = typeof value === "string" ? Number.parseFloat(value) : value;
 		return num.toFixed(2);
 	};
 
 	return (
 		<div className="flex flex-col gap-4 p-4">
-			<div className="flex justify-between items-center">
-				<h1 className="text-2xl font-bold">Converting Incentives</h1>
+			<div className="flex items-center justify-between">
+				<h1 className="font-bold text-2xl">Converting Incentives</h1>
 				<Button
 					onClick={() => {
 						setEditingRecord(undefined);
@@ -156,30 +201,68 @@ function RouteComponent() {
 					<CardTitle>Filters</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
 						<div>
-							<label className="text-sm font-medium">Employee Name</label>
+							<label htmlFor="employee-search" className="font-medium text-sm">
+								Employee Name
+							</label>
 							<Input
+								id="employee-search"
+								className="mt-1"
 								placeholder="Search by name or email..."
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
-								className="mt-1"
 							/>
 						</div>
 						<div>
-							<label className="text-sm font-medium">Start Date</label>
+							<label htmlFor="type-filter" className="font-medium text-sm">
+								Type
+							</label>
+							{typesQuery.isLoading ? (
+								<Skeleton className="mt-1 h-10 w-full" />
+							) : (
+								<Select
+									value={filter.type || "All"}
+									onValueChange={(value) =>
+										setFilter((prev) => ({ ...prev, type: value }))
+									}
+								>
+									<SelectTrigger id="type-filter" className="mt-1">
+										<SelectValue placeholder="All Types" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="All">All</SelectItem>
+										{typesQuery.data?.map(
+											(type: { id: string; name: string }) => (
+												<SelectItem key={type.id} value={type.id}>
+													{type.name}
+												</SelectItem>
+											),
+										)}
+									</SelectContent>
+								</Select>
+							)}
+						</div>
+						<div>
+							<label htmlFor="start-date" className="font-medium text-sm">
+								Start Date
+							</label>
 							<DatePicker
-								date={filter.startDate}
+								date={filter.startDate ? new Date(filter.startDate) : undefined}
 								onDateChange={handleStartDateChange}
-								placeholder="Select start date"
+								placeholder="Start date"
+								disabled={false}
 							/>
 						</div>
 						<div>
-							<label className="text-sm font-medium">End Date</label>
+							<label htmlFor="end-date" className="font-medium text-sm">
+								End Date
+							</label>
 							<DatePicker
-								date={filter.endDate}
+								date={filter.endDate ? new Date(filter.endDate) : undefined}
 								onDateChange={handleEndDateChange}
-								placeholder="Select end date"
+								placeholder="End date"
+								disabled={false}
 							/>
 						</div>
 					</div>
@@ -193,8 +276,8 @@ function RouteComponent() {
 				<CardContent>
 					{convertingIncentivesQuery.isLoading ? (
 						<div className="space-y-2">
-							{Array.from({ length: 5 }).map((_, i) => (
-								<Skeleton key={i} className="h-10 w-full" />
+							{skeletonIds.map((id) => (
+								<Skeleton key={id} className="h-10 w-full" />
 							))}
 						</div>
 					) : (
@@ -204,39 +287,39 @@ function RouteComponent() {
 									<TableRow>
 										<TableHead>Date</TableHead>
 										<TableHead>Employee</TableHead>
-										<TableHead>Gold Weight</TableHead>
-										<TableHead>Silver Weight</TableHead>
-										<TableHead>Total Incentive</TableHead>
-										<TableHead>Staff 94%</TableHead>
-										<TableHead>Staff 6%</TableHead>
+										<TableHead>Type</TableHead>
+										<TableHead>Weight (gm)</TableHead>
+										<TableHead>Visits</TableHead>
+										<TableHead>Amount (₹)</TableHead>
 										<TableHead>Actions</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{(convertingIncentivesQuery.data?.items || []).length > 0 ? (
-										(convertingIncentivesQuery.data?.items || []).map((item) => (
-											<TableRow key={item.id}>
-												<TableCell>{item.date}</TableCell>
-												<TableCell>{item.userName}</TableCell>
-												<TableCell>{formatCurrency(item.goldWeight)}</TableCell>
-												<TableCell>{formatCurrency(item.silverWeight)}</TableCell>
-												<TableCell>₹{formatCurrency(item.totalIncentive)}</TableCell>
-												<TableCell>{item.staff94Percent}</TableCell>
-												<TableCell>{item.staff6Percent}</TableCell>
-												<TableCell>
-													<Button
-														size="sm"
-														variant="outline"
-														onClick={() => handleEdit(item)}
-													>
-														Edit
-													</Button>
-												</TableCell>
-											</TableRow>
-										))
+										(convertingIncentivesQuery.data?.items || []).map(
+											(item) => (
+												<TableRow key={item.id}>
+													<TableCell>{item.date}</TableCell>
+													<TableCell>{item.userName}</TableCell>
+													<TableCell>{item.typeName}</TableCell>
+													<TableCell>{formatCurrency(item.weight)}</TableCell>
+													<TableCell>{item.visit}</TableCell>
+													<TableCell>₹{formatCurrency(item.amount)}</TableCell>
+													<TableCell>
+														<Button
+															size="sm"
+															variant="outline"
+															onClick={() => handleEdit(item)}
+														>
+															Edit
+														</Button>
+													</TableCell>
+												</TableRow>
+											),
+										)
 									) : (
 										<TableRow>
-											<TableCell colSpan={8} className="text-center py-4">
+											<TableCell className="py-4 text-center" colSpan={7}>
 												No records found
 											</TableCell>
 										</TableRow>
@@ -246,9 +329,10 @@ function RouteComponent() {
 						</div>
 					)}
 
-					<div className="flex justify-between items-center mt-4 px-2">
-						<div className="text-sm text-muted-foreground">
-							Page {page} of {totalPages} (Total: {convertingIncentivesQuery.data?.total || 0})
+					<div className="mt-4 flex items-center justify-between px-2">
+						<div className="text-muted-foreground text-sm">
+							Page {page} of {totalPages} (Total:{" "}
+							{convertingIncentivesQuery.data?.total || 0})
 						</div>
 						<div className="flex gap-2">
 							<Button
