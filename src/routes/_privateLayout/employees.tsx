@@ -1,5 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
+import z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,75 +25,90 @@ import { orpc } from "@/orpc/client";
 
 export const Route = createFileRoute("/_privateLayout/employees")({
 	component: RouteComponent,
+	validateSearch: z.object({
+		page: z.number().int().min(1).default(1),
+		pageSize: z.number().int().min(1).max(100).default(10),
+		query: z.string().optional(),
+		jobTitleId: z.string().optional(),
+		businessUnitId: z.string().optional(),
+		departmentId: z.string().optional(),
+		locationId: z.string().optional(),
+	}),
 });
 
 function RouteComponent() {
-	const [page, setPage] = React.useState(1);
-	const [pageSize, setPageSize] = React.useState(10);
-	const [query, setQuery] = React.useState("");
-	const [jobTitleId, setJobTitleId] = React.useState<string | undefined>();
-	const [businessUnitId, setBusinessUnitId] = React.useState<
-		string | undefined
-	>();
-	const [departmentId, setDepartmentId] = React.useState<string | undefined>();
-	const [locationId, setLocationId] = React.useState<string | undefined>();
-	const [legalEntityId, setLegalEntityId] = React.useState<
-		string | undefined
-	>();
+	const {
+		page,
+		pageSize,
+		query,
+		jobTitleId,
+		businessUnitId,
+		departmentId,
+		locationId,
+	} = Route.useSearch();
+	const navigate = useNavigate({ from: Route.fullPath });
 
-	const { data: options } = orpc.options.useQueries({
-		jobTitles: {},
-		businessUnits: {},
-		departments: {},
-		locations: {},
-		legalEntities: {},
-	});
+	const jobTitlesQuery = useQuery(orpc.options.jobTitles.queryOptions());
+	const businessUnitsQuery = useQuery(
+		orpc.options.businessUnits.queryOptions(),
+	);
+	const departmentsQuery = useQuery(orpc.options.departments.queryOptions());
+	const locationsQuery = useQuery(orpc.options.locations.queryOptions());
+	const legalEntitiesQuery = useQuery(
+		orpc.options.legalEntities.queryOptions(),
+	);
 
-	const employeesQuery = orpc.employees.list.useQuery(
-		{
-			page,
-			pageSize,
-			filters: {
-				query,
-				jobTitleId,
-				businessUnitId,
-				departmentId,
-				locationId,
-				legalEntityId,
+	const options = {
+		jobTitles: jobTitlesQuery.data,
+		businessUnits: businessUnitsQuery.data,
+		departments: departmentsQuery.data,
+		locations: locationsQuery.data,
+		legalEntities: legalEntitiesQuery.data,
+	};
+
+	const employeesQuery = useQuery(
+		orpc.employees.list.queryOptions({
+			input: {
+				page,
+				pageSize,
+				filters: {
+					query,
+					jobTitleId: jobTitleId === "All" ? undefined : jobTitleId,
+					businessUnitId: businessUnitId === "All" ? undefined : businessUnitId,
+					departmentId: departmentId === "All" ? undefined : departmentId,
+					locationId: locationId === "All" ? undefined : locationId,
+				},
 			},
-		},
-		{ keepPreviousData: true },
+		}),
 	);
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-4 p-4">
 			<Card>
 				<CardHeader>
 					<CardTitle>Employees</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="grid grid-cols-1 gap-3 md:grid-cols-6">
+					<div className="flex flex-wrap gap-3">
 						<Input
 							placeholder="Search name or email"
 							value={query}
 							onChange={(e) => {
-								setPage(1);
-								setQuery(e.target.value);
+								navigate({ search: { page: 1, query: e.target.value } });
 							}}
-							className="md:col-span-2"
+							className="max-w-96"
 						/>
 						<Select
 							value={jobTitleId ?? ""}
 							onValueChange={(v) => {
-								setPage(1);
-								setJobTitleId(v || undefined);
+								navigate({ search: { page: 1, jobTitleId: v } });
 							}}
 						>
 							<SelectTrigger>
 								<SelectValue placeholder="Job Title" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="">All</SelectItem>
+								<SelectItem value="All">All</SelectItem>
 								{options?.jobTitles?.map((jt) => (
 									<SelectItem key={jt.id} value={jt.id}>
 										{jt.name}
@@ -102,15 +119,14 @@ function RouteComponent() {
 						<Select
 							value={businessUnitId ?? ""}
 							onValueChange={(v) => {
-								setPage(1);
-								setBusinessUnitId(v || undefined);
+								navigate({ search: { page: 1, businessUnitId: v } });
 							}}
 						>
 							<SelectTrigger>
 								<SelectValue placeholder="Business Unit" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="">All</SelectItem>
+								<SelectItem value="All	">All</SelectItem>
 								{options?.businessUnits?.map((bu) => (
 									<SelectItem key={bu.id} value={bu.id}>
 										{bu.name}
@@ -121,15 +137,14 @@ function RouteComponent() {
 						<Select
 							value={departmentId ?? ""}
 							onValueChange={(v) => {
-								setPage(1);
-								setDepartmentId(v || undefined);
+								navigate({ search: { page: 1, departmentId: v } });
 							}}
 						>
 							<SelectTrigger>
 								<SelectValue placeholder="Department" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="">All</SelectItem>
+								<SelectItem value="All">All</SelectItem>
 								{options?.departments?.map((d) => (
 									<SelectItem key={d.id} value={d.id}>
 										{d.name}
@@ -140,37 +155,17 @@ function RouteComponent() {
 						<Select
 							value={locationId ?? ""}
 							onValueChange={(v) => {
-								setPage(1);
-								setLocationId(v || undefined);
+								navigate({ search: { page: 1, locationId: v } });
 							}}
 						>
 							<SelectTrigger>
 								<SelectValue placeholder="Location" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="">All</SelectItem>
+								<SelectItem value="All">All</SelectItem>
 								{options?.locations?.map((l) => (
 									<SelectItem key={l.id} value={l.id}>
 										{l.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-						<Select
-							value={legalEntityId ?? ""}
-							onValueChange={(v) => {
-								setPage(1);
-								setLegalEntityId(v || undefined);
-							}}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Legal Entity" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="">All</SelectItem>
-								{options?.legalEntities?.map((le) => (
-									<SelectItem key={le.id} value={le.id}>
-										{le.name}
 									</SelectItem>
 								))}
 							</SelectContent>
@@ -235,21 +230,14 @@ function RouteComponent() {
 							<Button
 								variant="outline"
 								disabled={page === 1}
-								onClick={() => setPage(1)}
-							>
-								First
-							</Button>
-							<Button
-								variant="outline"
-								disabled={page === 1}
-								onClick={() => setPage((p) => Math.max(1, p - 1))}
+								onClick={() => navigate({ search: { page: page - 1 } })}
 							>
 								Prev
 							</Button>
 							<Button
 								variant="outline"
 								disabled={page * pageSize >= (employeesQuery.data?.total ?? 0)}
-								onClick={() => setPage((p) => p + 1)}
+								onClick={() => navigate({ search: { page: page + 1 } })}
 							>
 								Next
 							</Button>
@@ -257,8 +245,7 @@ function RouteComponent() {
 						<Select
 							value={String(pageSize)}
 							onValueChange={(v) => {
-								setPage(1);
-								setPageSize(Number(v));
+								navigate({ search: { pageSize: Number(v) } });
 							}}
 						>
 							<SelectTrigger className="w-[100px]">

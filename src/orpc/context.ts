@@ -1,12 +1,8 @@
 import { auth } from "@/lib/auth";
 
-export type CreateContextOptions = {
-	context: Request;
-};
-
-export async function createContext({ context }: CreateContextOptions) {
+export async function createContext({ req }: { req: Request }) {
 	const session = await auth.api.getSession({
-		headers: context.headers,
+		headers: req.headers,
 	});
 	return {
 		session,

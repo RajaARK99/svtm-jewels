@@ -55,8 +55,10 @@ export const legalEntity = pgTable("legal_entity", {
 // Employee table
 export const employee = pgTable("employee", {
 	id: text("id").primaryKey(),
-	name: text("name").notNull(),
-	email: text("email").notNull().unique(),
+	userId: text("user_id")
+		.references(() => user.id, { onDelete: "restrict" })
+		.notNull()
+		.unique(),
 	dateOfJoining: date("date_of_joining").notNull(),
 	jobTitleId: text("job_title_id")
 		.references(() => jobTitle.id, { onDelete: "restrict" })
