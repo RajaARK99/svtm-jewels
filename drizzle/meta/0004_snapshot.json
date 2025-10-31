@@ -1,186 +1,9 @@
 {
-  "id": "3fcbd5d1-3f1a-4dec-99e7-4d28eb25bd87",
-  "prevId": "8eb1063c-abb8-4283-a402-cc95281942cf",
+  "id": "44d52423-2439-4ff4-867f-56b588f6497b",
+  "prevId": "7e8229fc-b8d3-40f8-85c4-dfe3b1ccc8c5",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.attendance": {
-      "name": "attendance",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "date": {
-          "name": "date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "attendance_user_id_user_id_fk": {
-          "name": "attendance_user_id_user_id_fk",
-          "tableFrom": "attendance",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.attendance_code": {
-      "name": "attendance_code",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "code": {
-          "name": "code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "attendance_code_code_unique": {
-          "name": "attendance_code_code_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.attendance_entry": {
-      "name": "attendance_entry",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "attendance_id": {
-          "name": "attendance_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attendance_code_id": {
-          "name": "attendance_code_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "attendance_entry_attendance_id_attendance_id_fk": {
-          "name": "attendance_entry_attendance_id_attendance_id_fk",
-          "tableFrom": "attendance_entry",
-          "tableTo": "attendance",
-          "columnsFrom": [
-            "attendance_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "attendance_entry_attendance_code_id_attendance_code_id_fk": {
-          "name": "attendance_entry_attendance_code_id_attendance_code_id_fk",
-          "tableFrom": "attendance_entry",
-          "tableTo": "attendance_code",
-          "columnsFrom": [
-            "attendance_code_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.account": {
       "name": "account",
       "schema": "",
@@ -339,6 +162,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "impersonated_by": {
+          "name": "impersonated_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -419,6 +248,31 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banned": {
+          "name": "banned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ban_reason": {
+          "name": "ban_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ban_expires": {
+          "name": "ban_expires",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -488,6 +342,66 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.attendance": {
+      "name": "attendance",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "attendance_name_unique": {
+          "name": "attendance_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        },
+        "attendance_code_unique": {
+          "name": "attendance_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.business_unit": {
       "name": "business_unit",
       "schema": "",
@@ -525,6 +439,53 @@
       "uniqueConstraints": {
         "business_unit_name_unique": {
           "name": "business_unit_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.converting_type": {
+      "name": "converting_type",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "converting_type_name_unique": {
+          "name": "converting_type_name_unique",
           "nullsNotDistinct": false,
           "columns": [
             "name"
@@ -575,187 +536,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "name"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.employee": {
-      "name": "employee",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "date_of_joining": {
-          "name": "date_of_joining",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "job_title_id": {
-          "name": "job_title_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "business_unit_id": {
-          "name": "business_unit_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "department_id": {
-          "name": "department_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "location_id": {
-          "name": "location_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "legal_entity_id": {
-          "name": "legal_entity_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "reporting_to_user_id": {
-          "name": "reporting_to_user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "employee_user_id_user_id_fk": {
-          "name": "employee_user_id_user_id_fk",
-          "tableFrom": "employee",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "employee_job_title_id_job_title_id_fk": {
-          "name": "employee_job_title_id_job_title_id_fk",
-          "tableFrom": "employee",
-          "tableTo": "job_title",
-          "columnsFrom": [
-            "job_title_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "employee_business_unit_id_business_unit_id_fk": {
-          "name": "employee_business_unit_id_business_unit_id_fk",
-          "tableFrom": "employee",
-          "tableTo": "business_unit",
-          "columnsFrom": [
-            "business_unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "employee_department_id_department_id_fk": {
-          "name": "employee_department_id_department_id_fk",
-          "tableFrom": "employee",
-          "tableTo": "department",
-          "columnsFrom": [
-            "department_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "employee_location_id_location_id_fk": {
-          "name": "employee_location_id_location_id_fk",
-          "tableFrom": "employee",
-          "tableTo": "location",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "employee_legal_entity_id_legal_entity_id_fk": {
-          "name": "employee_legal_entity_id_legal_entity_id_fk",
-          "tableFrom": "employee",
-          "tableTo": "legal_entity",
-          "columnsFrom": [
-            "legal_entity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "employee_reporting_to_user_id_user_id_fk": {
-          "name": "employee_reporting_to_user_id_user_id_fk",
-          "tableFrom": "employee",
-          "tableTo": "user",
-          "columnsFrom": [
-            "reporting_to_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "employee_user_id_unique": {
-          "name": "employee_user_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
           ]
         }
       },
@@ -904,15 +684,16 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.converting_incentives": {
-      "name": "converting_incentives",
+    "public.employee": {
+      "name": "employee",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "user_id": {
           "name": "user_id",
@@ -920,130 +701,47 @@
           "primaryKey": false,
           "notNull": true
         },
-        "date": {
-          "name": "date",
-          "type": "date",
+        "date_of_joining": {
+          "name": "date_of_joining",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
-        "gold_weight": {
-          "name": "gold_weight",
-          "type": "numeric(10, 2)",
+        "job_title_id": {
+          "name": "job_title_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
+          "notNull": true
         },
-        "coin_weight": {
-          "name": "coin_weight",
-          "type": "numeric(10, 2)",
+        "business_unit_id": {
+          "name": "business_unit_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
+          "notNull": true
         },
-        "diamond_weight": {
-          "name": "diamond_weight",
-          "type": "numeric(10, 2)",
+        "department_id": {
+          "name": "department_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
+          "notNull": true
         },
-        "silver_antique_weight": {
-          "name": "silver_antique_weight",
-          "type": "numeric(10, 2)",
+        "location_id": {
+          "name": "location_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
+          "notNull": true
         },
-        "silver_weight": {
-          "name": "silver_weight",
-          "type": "numeric(10, 2)",
+        "legal_entity_id": {
+          "name": "legal_entity_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
+          "notNull": true
         },
-        "sales_incentive_gold": {
-          "name": "sales_incentive_gold",
-          "type": "numeric(12, 2)",
+        "reporting_to_user_id": {
+          "name": "reporting_to_user_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "sales_incentive_gold_coin": {
-          "name": "sales_incentive_gold_coin",
-          "type": "numeric(12, 2)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "sales_incentive_diamond": {
-          "name": "sales_incentive_diamond",
-          "type": "numeric(12, 2)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "sales_incentive_silver_antique": {
-          "name": "sales_incentive_silver_antique",
-          "type": "numeric(12, 2)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "sales_incentive_silver": {
-          "name": "sales_incentive_silver",
-          "type": "numeric(12, 2)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "total_incentive": {
-          "name": "total_incentive",
-          "type": "numeric(12, 2)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "staff_94_percent": {
-          "name": "staff_94_percent",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
-        },
-        "staff_6_percent": {
-          "name": "staff_6_percent",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
-        },
-        "absent_staff_94": {
-          "name": "absent_staff_94",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
-        },
-        "absent_staff_6": {
-          "name": "absent_staff_6",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
-        },
-        "incentive_per_staff_94": {
-          "name": "incentive_per_staff_94",
-          "type": "numeric(10, 2)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
-        },
-        "incentive_per_staff_6": {
-          "name": "incentive_per_staff_6",
-          "type": "numeric(10, 2)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0'"
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -1062,9 +760,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "converting_incentives_user_id_user_id_fk": {
-          "name": "converting_incentives_user_id_user_id_fk",
-          "tableFrom": "converting_incentives",
+        "employee_user_id_user_id_fk": {
+          "name": "employee_user_id_user_id_fk",
+          "tableFrom": "employee",
           "tableTo": "user",
           "columnsFrom": [
             "user_id"
@@ -1074,6 +772,84 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "employee_job_title_id_job_title_id_fk": {
+          "name": "employee_job_title_id_job_title_id_fk",
+          "tableFrom": "employee",
+          "tableTo": "job_title",
+          "columnsFrom": [
+            "job_title_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "employee_business_unit_id_business_unit_id_fk": {
+          "name": "employee_business_unit_id_business_unit_id_fk",
+          "tableFrom": "employee",
+          "tableTo": "business_unit",
+          "columnsFrom": [
+            "business_unit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "employee_department_id_department_id_fk": {
+          "name": "employee_department_id_department_id_fk",
+          "tableFrom": "employee",
+          "tableTo": "department",
+          "columnsFrom": [
+            "department_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "employee_location_id_location_id_fk": {
+          "name": "employee_location_id_location_id_fk",
+          "tableFrom": "employee",
+          "tableTo": "location",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "employee_legal_entity_id_legal_entity_id_fk": {
+          "name": "employee_legal_entity_id_legal_entity_id_fk",
+          "tableFrom": "employee",
+          "tableTo": "legal_entity",
+          "columnsFrom": [
+            "legal_entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "employee_reporting_to_user_id_user_id_fk": {
+          "name": "employee_reporting_to_user_id_user_id_fk",
+          "tableFrom": "employee",
+          "tableTo": "user",
+          "columnsFrom": [
+            "reporting_to_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1082,39 +858,28 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.converting_metric_type": {
-      "name": "converting_metric_type",
+    "public.employee_attendance": {
+      "name": "employee_attendance",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
-        "name": {
-          "name": "name",
+        "employee_id": {
+          "name": "employee_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "category": {
-          "name": "category",
-          "type": "text",
+        "date": {
+          "name": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
-        },
-        "unit": {
-          "name": "unit",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1132,14 +897,29 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "employee_attendance_employee_id_employee_id_fk": {
+          "name": "employee_attendance_employee_id_employee_id_fk",
+          "tableFrom": "employee_attendance",
+          "tableTo": "employee",
+          "columnsFrom": [
+            "employee_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "converting_metric_type_name_unique": {
-          "name": "converting_metric_type_name_unique",
+        "employee_attendance_employee_id_date_unique": {
+          "name": "employee_attendance_employee_id_date_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "name"
+            "employee_id",
+            "date"
           ]
         }
       },
@@ -1147,31 +927,26 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.converting_metrics_detail": {
-      "name": "converting_metrics_detail",
+    "public.employee_attendance_type": {
+      "name": "employee_attendance_type",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
-        "converting_incentives_id": {
-          "name": "converting_incentives_id",
+        "employee_attendance_id": {
+          "name": "employee_attendance_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "metric_type_id": {
-          "name": "metric_type_id",
+        "attendance_id": {
+          "name": "attendance_id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "value": {
-          "name": "value",
-          "type": "numeric(12, 4)",
           "primaryKey": false,
           "notNull": true
         },
@@ -1185,12 +960,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "converting_metrics_detail_converting_incentives_id_converting_incentives_id_fk": {
-          "name": "converting_metrics_detail_converting_incentives_id_converting_incentives_id_fk",
-          "tableFrom": "converting_metrics_detail",
-          "tableTo": "converting_incentives",
+        "employee_attendance_type_employee_attendance_id_employee_attendance_id_fk": {
+          "name": "employee_attendance_type_employee_attendance_id_employee_attendance_id_fk",
+          "tableFrom": "employee_attendance_type",
+          "tableTo": "employee_attendance",
           "columnsFrom": [
-            "converting_incentives_id"
+            "employee_attendance_id"
           ],
           "columnsTo": [
             "id"
@@ -1198,22 +973,31 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "converting_metrics_detail_metric_type_id_converting_metric_type_id_fk": {
-          "name": "converting_metrics_detail_metric_type_id_converting_metric_type_id_fk",
-          "tableFrom": "converting_metrics_detail",
-          "tableTo": "converting_metric_type",
+        "employee_attendance_type_attendance_id_attendance_id_fk": {
+          "name": "employee_attendance_type_attendance_id_attendance_id_fk",
+          "tableFrom": "employee_attendance_type",
+          "tableTo": "attendance",
           "columnsFrom": [
-            "metric_type_id"
+            "attendance_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "restrict",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "employee_attendance_type_employee_attendance_id_attendance_id_unique": {
+          "name": "employee_attendance_type_employee_attendance_id_attendance_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "employee_attendance_id",
+            "attendance_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

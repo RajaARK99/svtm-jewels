@@ -1,0 +1,2 @@
+ALTER TABLE "sales_incentives" ADD COLUMN "total_sales_incentive_for_94_percent" real NOT NULL;--> statement-breakpoint
+ALTER TABLE "sales_incentives" ADD COLUMN "total_sales_incentive_for_6_percent" real NOT NULL;

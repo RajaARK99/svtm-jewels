@@ -1,20 +1,33 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
 
-export function getContext() {
-	const queryClient = new QueryClient();
-	return {
-		queryClient,
-	};
-}
+export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`, {
+        action: {
+          label: "retry",
+          onClick: () => {
+            queryClient.invalidateQueries();
+          },
+        },
+      });
+    },
+  }),
+});
 
 export function Provider({
-	children,
-	queryClient,
+  children,
+  queryClient,
 }: {
-	children: React.ReactNode;
-	queryClient: QueryClient;
+  children: React.ReactNode;
+  queryClient: QueryClient;
 }) {
-	return (
-		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-	);
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }

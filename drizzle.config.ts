@@ -1,12 +1,15 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
-import { serverEnv } from "@/env/server";
+
+import { env } from "@/env/server";
+
+config();
 
 export default defineConfig({
-	out: "./drizzle",
-	schema: "./src/db/schema/index.ts",
-	dialect: "postgresql",
-	dbCredentials: {
-		url: serverEnv.DATABASE_URL,
-	},
+  out: "./drizzle",
+  schema: "./src/db/schema/index.ts",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: env.DATABASE_URL,
+  },
 });
