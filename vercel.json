@@ -1,0 +1,35 @@
+{
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist/client",
+  "functions": {
+    "dist/server/server.js": {
+      "runtime": "nodejs24.x",
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/dist/server/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/server/server.js"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/dist/server/server.js"
+    }
+  ]
+}
