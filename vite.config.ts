@@ -7,6 +7,9 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
   plugins: [
+    nitroV2Plugin({
+      compatibilityDate: "latest",
+    }),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
@@ -17,9 +20,6 @@ const config = defineConfig({
       babel: {
         plugins: ["babel-plugin-react-compiler"],
       },
-    }),
-    nitroV2Plugin({
-      compatibilityDate: "latest",
     }),
   ],
 });
