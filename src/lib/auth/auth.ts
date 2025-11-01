@@ -14,7 +14,6 @@ export const statement = {
 
 export const ac = createAccessControl(statement);
 
-
 export const admin = ac.newRole({
   project: [...statement.project],
 });
@@ -48,7 +47,7 @@ export const auth = betterAuth({
     deleteUser: {
       enabled: true,
     },
-    changeEmail:{
+    changeEmail: {
       enabled: true,
     },
   },

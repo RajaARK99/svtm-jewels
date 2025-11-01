@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth/auth";
 import { db } from "@/db";
+import { auth } from "@/lib/auth/auth";
 
 export async function createContext({ req }: { req: Request }) {
   const session = await auth.api.getSession({

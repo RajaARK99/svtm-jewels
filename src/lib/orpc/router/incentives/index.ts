@@ -10,4 +10,4 @@ const incentivesRouter = protectedProcedure
     saleIncentiveRoute,
   });
 
-  export { incentivesRouter };
+export { incentivesRouter };

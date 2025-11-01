@@ -114,7 +114,7 @@ const locations = [
 
 const legalEntities = ["SRI VASAVI THANGA MAALIGAI"];
 
-const attendance= [
+const attendance = [
   {
     code: "SL",
     name: "Sick Leave",
@@ -151,7 +151,7 @@ const attendance= [
     code: "PT",
     name: "Paternity Leave",
   },
-    {
+  {
     code: "BL",
     name: "Bereavement Leave",
   },
@@ -170,7 +170,8 @@ const attendance= [
   {
     code: "P(MS)",
     name: "Missing Swipe",
-  },{
+  },
+  {
     code: "H",
     name: "Holiday",
   },
@@ -210,7 +211,7 @@ const attendance= [
     code: "P(NS)",
     name: "Present (No Show Penalty)",
   },
-]
+];
 
 const convertingTypes = [
   {
@@ -243,7 +244,7 @@ const salesIncentiveTypes = [
   {
     id: randomUUID(),
     name: "No Incentive",
-  }
+  },
 ];
 
 async function seed() {
@@ -251,14 +252,15 @@ async function seed() {
 
   try {
     // Seed Job Titles
-    
 
     console.log("📝 Seeding sales incentive types...");
     await db
       .insert(schema.salesIncentiveType)
       .values(salesIncentiveTypes)
       .onConflictDoNothing({ target: schema.salesIncentiveType.name });
-    console.log(`✅ Seeded ${salesIncentiveTypes.length} sales incentive types`);
+    console.log(
+      `✅ Seeded ${salesIncentiveTypes.length} sales incentive types`,
+    );
     console.log("✅ Seeded database successfully");
     process.exit(0);
   } catch (error) {

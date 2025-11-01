@@ -1,5 +1,3 @@
-"use client";
-
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 import { Label } from "@/components/ui/label";
@@ -199,7 +197,7 @@ function FieldError({
       return null;
     }
 
-    if (errors?.length == 1) {
+    if (errors?.length === 1) {
       return errors[0]?.message;
     }
 

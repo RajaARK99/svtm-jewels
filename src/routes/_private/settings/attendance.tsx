@@ -1,11 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  ChevronDownIcon,
-  PencilIcon,
-  Upload,
-  XIcon,
-} from "lucide-react";
+import { ChevronDownIcon, PencilIcon, Upload, XIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import UpdateAttendanceDialog from "@/components/attendance/updateAttendance";

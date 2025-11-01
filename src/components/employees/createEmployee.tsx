@@ -108,7 +108,6 @@ const CreateEmployeeDialog = ({
         reportingToUserId: value.reportingToUserId,
         salesIncentiveTypeId: value.salesIncentiveTypeId || undefined,
       });
-     
     },
     validationLogic: revalidateLogic({
       mode: "submit",

@@ -12,8 +12,6 @@ import { auth } from "@/lib/auth/auth";
 import { protectedProcedure } from "@/lib/orpc";
 import { throwError } from "@/lib/utils";
 
-
-
 const createUser = protectedProcedure
   .route({
     path: "/create",
@@ -43,14 +41,14 @@ const createUser = protectedProcedure
       })
       .nullish(),
   )
-  .handler(async ({ input: { name, email, role, password },context }) => {
+  .handler(async ({ input: { name, email, role, password }, context }) => {
     try {
       const newUser = await auth.api.createUser({
         body: {
           email,
           name,
           password,
-          role:role ??"employee",
+          role: role ?? "employee",
         },
         headers: context.headers,
       });
@@ -72,16 +70,15 @@ const updateUser = protectedProcedure
     description: "Update a user",
   })
   .input(
-    userUpdateSchema
-      .omit({
-        emailVerified: true,
-        banExpires: true,
-        banned: true,
-        banReason: true,
-        createdAt: true,
-        updatedAt: true,
-        image: true,
-      }),
+    userUpdateSchema.omit({
+      emailVerified: true,
+      banExpires: true,
+      banned: true,
+      banReason: true,
+      createdAt: true,
+      updatedAt: true,
+      image: true,
+    }),
   )
   .output(
     z
@@ -92,7 +89,7 @@ const updateUser = protectedProcedure
       })
       .nullish(),
   )
-  .handler(async ({ input: { id, name, email, role },context }) => {
+  .handler(async ({ input: { id, name, email, role }, context }) => {
     try {
       const updateData: {
         name?: string;
@@ -103,7 +100,7 @@ const updateUser = protectedProcedure
       if (name !== undefined) updateData.name = name;
       if (role !== undefined) updateData.role = role ?? undefined;
       if (email !== undefined) updateData.email = email;
-      
+
       const updatedUser = await auth.api.adminUpdateUser({
         body: {
           userId: id,
@@ -118,13 +115,14 @@ const updateUser = protectedProcedure
         data: updatedUser,
       };
     } catch (error) {
-      console.log({error});
-      
+      console.log({ error });
+
       throw new ORPCError("BAD_REQUEST", {
-       data: {
-        success: false,
-        message: error instanceof Error ? error.message : "Failed to update user",
-       }
+        data: {
+          success: false,
+          message:
+            error instanceof Error ? error.message : "Failed to update user",
+        },
       });
     }
   });
@@ -174,7 +172,13 @@ const getUsers = protectedProcedure
         filter: z
           .object({
             search: z.string().optional(),
-            role: z.union([z.literal("user"), z.literal("admin"), z.literal("employee")]).optional(),
+            role: z
+              .union([
+                z.literal("user"),
+                z.literal("admin"),
+                z.literal("employee"),
+              ])
+              .optional(),
           })
           .optional(),
         pagination: z
@@ -217,7 +221,6 @@ const getUsers = protectedProcedure
       if (filter?.role && filter.role.length > 0) {
         filterConditions.push(inArray(user.role, [filter.role]));
       }
-
 
       const whereConditions =
         filterConditions.length > 0 ? and(...filterConditions) : undefined;

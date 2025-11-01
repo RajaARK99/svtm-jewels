@@ -49,7 +49,7 @@ export const legalEntity = pgTable("legal_entity", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
-export const attendance= pgTable("attendance", {
+export const attendance = pgTable("attendance", {
   id: text("id").primaryKey(),
   name: text("name").notNull().unique(),
   code: text("code").notNull().unique(),
@@ -61,13 +61,13 @@ export const attendance= pgTable("attendance", {
 });
 
 export const convertingType = pgTable("converting_type", {
-	id: text("id").primaryKey(),
-	name: text("name").notNull().unique(), // Diamond, Boutique, AMS, IDOLS
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at")
-		.defaultNow()
-		.$onUpdate(() => new Date())
-		.notNull(),
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(), // Diamond, Boutique, AMS, IDOLS
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 export const salesIncentiveType = pgTable("sales_incentive_type", {

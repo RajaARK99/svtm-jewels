@@ -94,12 +94,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -176,12 +172,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -191,9 +183,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -282,9 +272,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -386,16 +374,12 @@
         "attendance_name_unique": {
           "name": "attendance_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         },
         "attendance_code_unique": {
           "name": "attendance_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -440,9 +424,7 @@
         "business_unit_name_unique": {
           "name": "business_unit_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -487,9 +469,7 @@
         "converting_type_name_unique": {
           "name": "converting_type_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -534,9 +514,7 @@
         "department_name_unique": {
           "name": "department_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -581,9 +559,7 @@
         "job_title_name_unique": {
           "name": "job_title_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -628,9 +604,7 @@
         "legal_entity_name_unique": {
           "name": "legal_entity_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -675,9 +649,7 @@
         "location_name_unique": {
           "name": "location_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -764,12 +736,8 @@
           "name": "employee_user_id_user_id_fk",
           "tableFrom": "employee",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -777,12 +745,8 @@
           "name": "employee_job_title_id_job_title_id_fk",
           "tableFrom": "employee",
           "tableTo": "job_title",
-          "columnsFrom": [
-            "job_title_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_title_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -790,12 +754,8 @@
           "name": "employee_business_unit_id_business_unit_id_fk",
           "tableFrom": "employee",
           "tableTo": "business_unit",
-          "columnsFrom": [
-            "business_unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["business_unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -803,12 +763,8 @@
           "name": "employee_department_id_department_id_fk",
           "tableFrom": "employee",
           "tableTo": "department",
-          "columnsFrom": [
-            "department_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["department_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -816,12 +772,8 @@
           "name": "employee_location_id_location_id_fk",
           "tableFrom": "employee",
           "tableTo": "location",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["location_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -829,12 +781,8 @@
           "name": "employee_legal_entity_id_legal_entity_id_fk",
           "tableFrom": "employee",
           "tableTo": "legal_entity",
-          "columnsFrom": [
-            "legal_entity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["legal_entity_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -842,12 +790,8 @@
           "name": "employee_reporting_to_user_id_user_id_fk",
           "tableFrom": "employee",
           "tableTo": "user",
-          "columnsFrom": [
-            "reporting_to_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["reporting_to_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -902,12 +846,8 @@
           "name": "employee_attendance_employee_id_employee_id_fk",
           "tableFrom": "employee_attendance",
           "tableTo": "employee",
-          "columnsFrom": [
-            "employee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["employee_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -917,10 +857,7 @@
         "employee_attendance_employee_id_date_unique": {
           "name": "employee_attendance_employee_id_date_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "employee_id",
-            "date"
-          ]
+          "columns": ["employee_id", "date"]
         }
       },
       "policies": {},
@@ -964,12 +901,8 @@
           "name": "employee_attendance_type_employee_attendance_id_employee_attendance_id_fk",
           "tableFrom": "employee_attendance_type",
           "tableTo": "employee_attendance",
-          "columnsFrom": [
-            "employee_attendance_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["employee_attendance_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -977,12 +910,8 @@
           "name": "employee_attendance_type_attendance_id_attendance_id_fk",
           "tableFrom": "employee_attendance_type",
           "tableTo": "attendance",
-          "columnsFrom": [
-            "attendance_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["attendance_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -992,10 +921,7 @@
         "employee_attendance_type_employee_attendance_id_attendance_id_unique": {
           "name": "employee_attendance_type_employee_attendance_id_attendance_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "employee_attendance_id",
-            "attendance_id"
-          ]
+          "columns": ["employee_attendance_id", "attendance_id"]
         }
       },
       "policies": {},

@@ -19,9 +19,7 @@ export const employeeAttendance = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [
-    unique().on(table.employeeId, table.date),
-  ]
+  (table) => [unique().on(table.employeeId, table.date)],
 );
 
 export const employeeAttendanceType = pgTable(
@@ -36,9 +34,7 @@ export const employeeAttendanceType = pgTable(
       .references(() => attendance.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => [
-    unique().on(table.employeeAttendanceId, table.attendanceId),
-  ]
+  (table) => [unique().on(table.employeeAttendanceId, table.attendanceId)],
 );
 
 export const employeeAttendanceRelations = relations(
@@ -49,7 +45,7 @@ export const employeeAttendanceRelations = relations(
       references: [employee.id],
     }),
     attendanceTypes: many(employeeAttendanceType),
-  })
+  }),
 );
 
 export const employeeAttendanceTypeRelations = relations(
@@ -63,7 +59,7 @@ export const employeeAttendanceTypeRelations = relations(
       fields: [employeeAttendanceType.attendanceId],
       references: [attendance.id],
     }),
-  })
+  }),
 );
 
 const { createInsertSchema, createUpdateSchema } = createSchemaFactory({
@@ -76,14 +72,14 @@ export const employeeAttendanceInsertSchema = createInsertSchema(
   employeeAttendance,
   {
     id: z.string().optional(),
-  }
+  },
 ).omit({ id: true });
 
 export const employeeAttendanceUpdateSchema = createUpdateSchema(
   employeeAttendance,
   {
     id: z.string(),
-  }
+  },
 );
 
 export const employeeAttendanceSelectSchema =
@@ -93,9 +89,9 @@ export const employeeAttendanceTypeInsertSchema = createInsertSchema(
   employeeAttendanceType,
   {
     id: z.string().optional(),
-  }
+  },
 ).omit({ id: true });
 
 export const employeeAttendanceTypeSelectSchema = createSelectSchema(
-  employeeAttendanceType
+  employeeAttendanceType,
 );

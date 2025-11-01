@@ -72,15 +72,16 @@ function RouteComponent() {
     },
   });
   return (
-    <div className="flex h-screen items-center justify-center relative">
-<div
-      className="absolute inset-0 z-0"
-      style={{
-        background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255, 80, 120, 0.25), transparent 70%), #000000",
-      }}
-    />
+    <div className="relative flex h-screen items-center justify-center">
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255, 80, 120, 0.25), transparent 70%), #000000",
+        }}
+      />
       <div className="grid h-full w-full p-4 lg:grid-cols-2">
-        <div className="m-auto flex w-full max-w-xs flex-col items-center static z-10">
+        <div className="static z-10 m-auto flex w-full max-w-xs flex-col items-center">
           <GemIcon className="h-9 w-9" />
           <p className="mt-4 font-semibold text-xl tracking-tight">
             Log in to SVTM Jewels
@@ -172,7 +173,7 @@ function RouteComponent() {
             </Field>
           </form>
         </div>
-        <div className="hidden overflow-hidden rounded-lg border bg-amber-500/10 p-2 lg:block static z-10">
+        <div className="static z-10 hidden overflow-hidden rounded-lg border bg-amber-500/10 p-2 lg:block">
           <img
             alt="Jewelry showcase"
             className="h-full w-full rounded-lg object-cover"
@@ -183,4 +184,3 @@ function RouteComponent() {
     </div>
   );
 }
-

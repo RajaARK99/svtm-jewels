@@ -18,11 +18,9 @@ const config = defineConfig({
         plugins: ["babel-plugin-react-compiler"],
       },
     }),
-    nitroV2Plugin(
-      {
-        
-      }
-    ),
+    nitroV2Plugin({
+      compatibilityDate: "latest",
+    }),
   ],
 });
 

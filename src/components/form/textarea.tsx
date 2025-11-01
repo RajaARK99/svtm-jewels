@@ -1,9 +1,9 @@
+import { useStore } from "@tanstack/react-form";
 import { Label } from "@/components/ui/label";
 import { Textarea as UITextarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useFieldContext } from "./hooks";
-import { useStore } from "@tanstack/react-form";
 import { ErrorMessages } from "./Error";
+import { useFieldContext } from "./hooks";
 
 export interface TextAreaProps {
   label: string;
@@ -23,7 +23,7 @@ export function TextArea({
   rows,
 }: TextAreaProps) {
   const field = useFieldContext<string>();
-  const errors = useStore(field.store, (state) => state.meta.errors)
+  const errors = useStore(field.store, (state) => state.meta.errors);
   return (
     <div className={cn("space-y-2", className)}>
       <Label
