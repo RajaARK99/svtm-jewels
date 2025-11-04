@@ -1,8 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Construction } from "lucide-react";
-import { auth } from "@/lib/auth/auth-client";
-import { getuserId } from "@/lib/auth/server-fn";
+
 
 export const Route = createFileRoute("/_private/")({
   component: App,
