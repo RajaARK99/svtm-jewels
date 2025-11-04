@@ -199,7 +199,6 @@ function RouteComponent() {
 
   const salesIncentiveTypes =
     optionsData?.find((opt) => opt.type === "salesIncentiveType")?.data ?? [];
-  
 
   return (
     <div className="max-w-full space-y-8 overflow-x-hidden px-4 py-8 sm:px-6 lg:px-8">
@@ -342,6 +341,7 @@ function RouteComponent() {
         <Table className="w-full min-w-[1200px]">
           <TableHeader>
             <TableRow>
+              <TableHead className="px-4 py-3">Employee No.</TableHead>
               <TableHead className="max-w-[200px] px-4 py-3">User</TableHead>
               <TableHead className="px-4 py-3">Email</TableHead>
               <TableHead className="px-4 py-3">Job Title</TableHead>
@@ -373,6 +373,9 @@ function RouteComponent() {
             ) : (
               data.data.map((employee) => (
                 <TableRow key={employee.id}>
+                  <TableCell className="px-4 py-3">
+                    {employee.employeeId || "N/A"}
+                  </TableCell>
                   <TableCell
                     className="max-w-[200px] truncate px-4 py-3 font-medium"
                     title={employee.user?.name || "N/A"}
