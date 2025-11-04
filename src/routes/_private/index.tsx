@@ -10,7 +10,10 @@ export const Route = createFileRoute("/_private/")({
 
 function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-30 bg-background">
+      <h3 className="font-bold text-4xl text-foreground">
+        Welcome to Sri Vasavi
+      </h3>
       <div className="flex flex-col items-center gap-6 text-center">
         <div className="relative">
           <Construction

@@ -77,15 +77,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenuButton
           size="lg"
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          className="p-0 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+          {/* <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
             <GemIcon className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium">SVTM Jewels</span>
             <span className="truncate text-xs">Dindigul</span>
-          </div>
+          </div> */}
+          <img
+            src="https://svtmjewels.com/cdn/shop/files/logo_7abf6e99-a988-4cd3-bf22-e949b37fc8eb.jpg?height=120&v=1742969149"
+            alt="SVTM Jewels"
+            className="h-12 w-full rounded object-fill"
+          />
         </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
