@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import dayjs from "dayjs";
 
 interface CreateSalesIncentiveDialogProps {
   open: boolean;
@@ -46,7 +47,7 @@ const CreateSalesIncentiveDialog = ({
         return;
       }
       onSubmit({
-        date: value.date.toISOString(),
+        date: dayjs(value.date).format("YYYY-MM-DD"),
         coinAmountPerGM: value.coinAmountPerGM,
         goldAmountPerGM: value.goldAmountPerGM,
         diamondAmountPerCT: value.diamondAmountPerCT,
@@ -105,7 +106,7 @@ const CreateSalesIncentiveDialog = ({
                 {(field) => {
                   return <field.DatePicker label="Date" required />;
                 }}
-              </form.AppField> 
+              </form.AppField>
               <form.AppField name="goldAmountPerGM">
                 {(field) => {
                   return (
@@ -130,7 +131,7 @@ const CreateSalesIncentiveDialog = ({
                   );
                 }}
               </form.AppField>
-             
+
               <form.AppField name="diamondAmountPerCT">
                 {(field) => {
                   return (

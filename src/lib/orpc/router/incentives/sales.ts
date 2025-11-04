@@ -42,7 +42,7 @@ const createSalesIncentive = protectedProcedure
   })
   .input(
     z.object({
-      date: z.iso.datetime(),
+      date: z.iso.date(),
       coinAmountPerGM: z.number(),
       goldAmountPerGM: z.number(),
       diamondAmountPerCT: z.number(),
