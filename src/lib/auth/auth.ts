@@ -7,8 +7,10 @@ import { config } from "dotenv";
 import { db } from "@/db";
 import * as schema from "@/db/schema/index";
 import { env } from "@/env/server";
+import { defaultStatements, adminAc } from "better-auth/plugins/admin/access";
 
 export const statement = {
+  ...defaultStatements,
   project: ["read", "create", "share", "update", "delete"],
 } as const;
 
@@ -16,6 +18,7 @@ export const ac = createAccessControl(statement);
 
 export const admin = ac.newRole({
   project: [...statement.project],
+  ...adminAc.statements, 
 });
 
 export const employee = ac.newRole({
@@ -37,10 +40,11 @@ export const auth = betterAuth({
     reactStartCookies(),
     adminPlugin({
       ac,
-      roles: {
+      roles:
+      {
         admin,
         employee,
-      },
+      }
     }),
   ],
   user: {

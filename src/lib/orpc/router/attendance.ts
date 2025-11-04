@@ -136,8 +136,8 @@ const getAttendance = protectedProcedure
           .object({
             date: z
               .object({
-                startDate: z.iso.datetime(),
-                endDate: z.iso.datetime(),
+                startDate: z.iso.date(),
+                endDate: z.iso.date(),
               })
               .nullish(),
             employeeIds: z.string().array().optional(),

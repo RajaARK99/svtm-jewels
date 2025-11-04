@@ -1,1 +1,0 @@
-ALTER TABLE "employee_attendance" ALTER COLUMN "date" SET DATA TYPE timestamp;

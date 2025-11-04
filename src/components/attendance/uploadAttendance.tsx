@@ -24,11 +24,12 @@ import { api } from "@/lib/orpc/client";
 import { formatDate } from "@/lib/utils";
 
 interface ParsedRow {
-  employeeName: string;
   date: string;
   attendanceCodes: string;
-  employeeId?: string;
-  attendanceIds?: string[];
+  id: string;
+  employeeId: number;
+  employeeName: string;
+  attendanceIds: string[];
   errors?: string[];
 }
 
@@ -84,10 +85,18 @@ const UploadAttendanceDialog = ({
     optionsData?.find((opt) => opt.type === "attendance")?.data ?? [];
 
   // Create mapping dictionaries
-  const employeeMap = new Map<string, string>();
+  const employeeMap = new Map<
+    string,
+    { id: string; employeeId: number; name: string }
+  >();
   employees.forEach((emp) => {
-    if (emp.user?.name) {
-      employeeMap.set(emp.user.name.toLowerCase().trim(), emp.id);
+    // Map by employee number/id
+    if (emp.employeeId) {
+      employeeMap.set(String(emp.employeeId).toLowerCase().trim(), {
+        id: emp.id,
+        employeeId: emp.employeeId,
+        name: emp.user?.name ?? "",
+      });
     }
   });
 
@@ -128,25 +137,65 @@ const UploadAttendanceDialog = ({
       const headers = jsonData[0].map((h) =>
         String(h).toLowerCase().trim(),
       ) as string[];
+      const headersLower = headers.map((h) => h.toLowerCase());
 
-      // Find column indices
-      const employeeNameIndex = headers.findIndex(
-        (h) => h.includes("employee") || h.includes("name"),
-      );
-      const dateIndex = headers.findIndex((h) => h.includes("date"));
-      const attendanceCodesIndex = headers.findIndex(
-        (h) =>
-          h.includes("attendance") || h.includes("code") || h.includes("type"),
+      // Find column indices for employee info
+      const employeeNumberIndex = headersLower.findIndex(
+        (h) => h.includes("employee number") || h.includes("employee id"),
       );
 
-      if (
-        employeeNameIndex === -1 ||
-        dateIndex === -1 ||
-        attendanceCodesIndex === -1
-      ) {
-        toast.error(
-          "Excel file must have columns: Employee Name, Date, and Attendance Codes",
-        );
+      if (employeeNumberIndex === -1) {
+        toast.error("Excel file must have columns: Employee Number");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Find date columns (columns that look like dates)
+      const dateColumnIndices: { index: number; dateStr: string }[] = [];
+      for (let colIdx = 0; colIdx < headers.length; colIdx++) {
+        const header = headers[colIdx];
+        if (!header) continue;
+
+        // Try to parse date from header (format: DD-MMM-YYYY or similar)
+        let dateStr = "";
+
+        // Try parsing as date string (e.g., "01-Sep-2025")
+        const dateMatch = header.match(/(\d{1,2})[-/](\w{3})[-/](\d{4})/i);
+        if (dateMatch) {
+          const [, day, month, year] = dateMatch;
+          const monthMap: Record<string, string> = {
+            jan: "01",
+            feb: "02",
+            mar: "03",
+            apr: "04",
+            may: "05",
+            jun: "06",
+            jul: "07",
+            aug: "08",
+            sep: "09",
+            oct: "10",
+            nov: "11",
+            dec: "12",
+          };
+          const monthNum = monthMap[month.toLowerCase()];
+          if (monthNum) {
+            dateStr = `${year}-${monthNum}-${String(day).padStart(2, "0")}`;
+          }
+        } else {
+          // Try parsing as Date object
+          const date = new Date(header);
+          if (!Number.isNaN(date.getTime())) {
+            dateStr = date.toISOString().split("T")[0];
+          }
+        }
+
+        if (dateStr) {
+          dateColumnIndices.push({ index: colIdx, dateStr });
+        }
+      }
+
+      if (dateColumnIndices.length === 0) {
+        toast.error("No date columns found in Excel file");
         setIsProcessing(false);
         return;
       }
@@ -155,67 +204,72 @@ const UploadAttendanceDialog = ({
       const parsed: ParsedRow[] = [];
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
-        const employeeName = String(row[employeeNameIndex] || "").trim();
-        const dateValue = row[dateIndex];
-        const attendanceCodesStr = String(
-          row[attendanceCodesIndex] || "",
-        ).trim();
+        const employeeNumber = String(row[employeeNumberIndex] || "").trim();
+        // const employeeName = String(row[employeeNameIndex] || "").trim();
 
-        if (!employeeName || !dateValue || !attendanceCodesStr) {
+        if (!employeeNumber) {
           continue; // Skip empty rows
         }
 
-        // Parse date
-        let dateStr = "";
-        // Try to parse date string or number
-        const date = new Date(dateValue);
-        if (!Number.isNaN(date.getTime())) {
-          dateStr = date.toISOString().split("T")[0];
-        } else {
-          // Try Excel date number
-          const excelDate = XLSX.SSF.parse_date_code(Number(dateValue));
-          if (excelDate) {
-            dateStr = `${excelDate.y}-${String(excelDate.m).padStart(2, "0")}-${String(excelDate.d).padStart(2, "0")}`;
+        // Process each date column for this employee
+        for (const { index: dateColIdx, dateStr } of dateColumnIndices) {
+          const attendanceCodeStr = String(row[dateColIdx] || "").trim();
+
+          if (!attendanceCodeStr) {
+            continue; // Skip empty cells
           }
-        }
 
-        // Parse attendance codes (comma, space, or semicolon separated)
-        const codes = attendanceCodesStr
-          .split(/[,;:\s]+/)
-          .map((c) => c.trim().toUpperCase())
-          .filter((c) => c.length > 0);
+          // Parse attendance codes (handle multiple codes separated by comma, space, etc.)
+          const codes = attendanceCodeStr
+            .split(/[,;:\s]+/)
+            .map((c) => c.trim().toUpperCase())
+            .filter((c) => c.length > 0);
 
-        const errors: string[] = [];
-
-        // Map employee name to ID
-        const employeeId = employeeMap.get(employeeName.toLowerCase());
-        if (!employeeId) {
-          errors.push(`Encountered unknown employee: ${employeeName}`);
-        }
-
-        // Map attendance codes to IDs
-        const attendanceIds: string[] = [];
-        for (const code of codes) {
-          const attId = attendanceMap.get(code);
-          if (attId) {
-            attendanceIds.push(attId);
-          } else {
-            errors.push(`Encountered unknown attendance code: ${code}`);
+          if (codes.length === 0) {
+            continue; // Skip if no valid codes
           }
-        }
 
-        if (attendanceIds.length === 0) {
-          errors.push("No valid attendance codes found");
-        }
+          const errors: string[] = [];
 
-        parsed.push({
-          employeeName,
-          date: dateStr,
-          attendanceCodes: attendanceCodesStr,
-          employeeId,
-          attendanceIds: attendanceIds.length > 0 ? attendanceIds : undefined,
-          errors: errors.length > 0 ? errors : undefined,
-        });
+          // Map employee to ID (prefer number, fallback to name)
+          let employeeDetail:
+            | { id: string; employeeId: number; name: string }
+            | undefined;
+          if (employeeNumber) {
+            employeeDetail = employeeMap.get(
+              employeeNumber.toLowerCase().trim(),
+            );
+          }
+
+          if (!employeeDetail) {
+            errors.push(`Encountered unknown employee: ${employeeNumber}`);
+          }
+
+          // Map attendance codes to IDs
+          const attendanceIds: string[] = [];
+          for (const code of codes) {
+            const attId = attendanceMap.get(code);
+            if (attId) {
+              attendanceIds.push(attId);
+            } else {
+              errors.push(`Encountered unknown attendance code: ${code}`);
+            }
+          }
+
+          if (attendanceIds.length === 0) {
+            errors.push("No valid attendance codes found");
+          }
+
+          parsed.push({
+            id: employeeDetail?.id ?? "",
+            date: dateStr,
+            attendanceCodes: attendanceCodeStr,
+            employeeId: employeeDetail?.employeeId ?? 0,
+            employeeName: employeeDetail?.name ?? "",
+            attendanceIds,
+            errors: errors.length > 0 ? errors : undefined,
+          });
+        }
       }
 
       setParsedData(parsed);
@@ -273,8 +327,8 @@ const UploadAttendanceDialog = ({
         const data = rows
           .filter((row) => row.employeeId && row.attendanceIds)
           .map((row) => ({
-            employeeId: row.employeeId as string,
-            attendanceIds: row.attendanceIds as string[],
+            employeeId: row.id,
+            attendanceIds: row.attendanceIds,
           }));
 
         await createMutation.mutateAsync({
@@ -321,9 +375,10 @@ const UploadAttendanceDialog = ({
         <DialogHeader>
           <DialogTitle>Upload Attendance from Excel</DialogTitle>
           <DialogDescription>
-            Upload an Excel file with columns: Employee Name, Date, and
-            Attendance Codes (comma-separated). See the guide for format
-            details.
+            Upload an Excel file with Employee Number, Employee Name columns and
+            date columns (e.g., 01-Sep-2025) containing attendance codes. Each
+            row represents an employee, and each date column contains their
+            attendance code for that date.
           </DialogDescription>
         </DialogHeader>
 
@@ -378,6 +433,7 @@ const UploadAttendanceDialog = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>S No.</TableHead>
                       <TableHead>Employee Name</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Attendance Codes</TableHead>
@@ -393,6 +449,7 @@ const UploadAttendanceDialog = ({
                       const rowKey = `${row.employeeName}-${row.date}-${index}`;
                       return (
                         <TableRow key={rowKey}>
+                          <TableCell>{index + 1}</TableCell>
                           <TableCell>{row.employeeName}</TableCell>
                           <TableCell>
                             {row.date

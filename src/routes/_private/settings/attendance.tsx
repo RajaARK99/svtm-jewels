@@ -39,6 +39,7 @@ import {
 import { api } from "@/lib/orpc/client";
 import type { Attendance } from "@/lib/orpc/router/attendance";
 import { formatDate } from "@/lib/utils";
+import dayjs from "dayjs";
 
 export const Route = createFileRoute("/_private/settings/attendance")({
   component: RouteComponent,
@@ -202,8 +203,8 @@ function RouteComponent() {
                     setFilters({
                       ...filters,
                       date: {
-                        startDate: date?.from?.toISOString() ?? undefined,
-                        endDate: date?.to?.toISOString() ?? undefined,
+                        startDate: dayjs(date?.from).format("YYYY-MM-DD") ?? undefined,
+                        endDate: dayjs(date?.to).format("YYYY-MM-DD") ?? undefined,
                       },
                     });
                   }

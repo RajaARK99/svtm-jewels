@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { createSchemaFactory, createSelectSchema } from "drizzle-zod";
 import z from "zod";
 import { user } from "./auth";
@@ -14,6 +14,7 @@ import {
 
 export const employee = pgTable("employee", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: integer("employee_id").notNull().unique(),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
@@ -36,9 +37,7 @@ export const employee = pgTable("employee", {
   salesIncentiveTypeId: text("sales_incentive_type_id").references(
     () => salesIncentiveType.id,
   ),
-  reportingToUserId: text("reporting_to_user_id")
-    .notNull()
-    .references(() => user.id),
+  reportingToUserId: text("reporting_to_user_id").references(() => user.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

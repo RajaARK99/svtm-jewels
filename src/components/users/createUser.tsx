@@ -1,6 +1,6 @@
 import { revalidateLogic } from "@tanstack/react-form";
-import { PlusIcon } from "lucide-react";
-import { useEffect } from "react";
+import { Eye, EyeOff, PlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import z from "zod";
 import { useAppForm } from "@/components/form/hooks";
 import {
@@ -13,6 +13,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
+import { Field, FieldError, FieldLabel } from "../ui/field";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../ui/input-group";
 
 const roleOptions = [
   { value: "admin", label: "Admin" },
@@ -35,6 +37,7 @@ const CreateUserDialog = ({
   }) => void;
   isLoading: boolean;
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
   const form = useAppForm({
     defaultValues: {
       name: "",
@@ -105,12 +108,45 @@ const CreateUserDialog = ({
                   <field.Combobox label="Role" options={roleOptions} required />
                 )}
               </form.AppField>
+               <form.AppField name="password">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
 
-              <form.AppField name="password">
-                {(field) => (
-                  <field.Input label="Password" type="password" required />
-                )}
-              </form.AppField>
+                  <InputGroup>
+                    <InputGroupInput
+                      autoComplete="off"
+                      id="password"
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="••••••••"
+                      type={showPassword ? "text" : "password"}
+                      value={field.state.value}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                        onClick={() => setShowPassword(!showPassword)}
+                        size="icon-xs"
+                        variant="ghost"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="text-muted-foreground" />
+                        ) : (
+                          <Eye className="text-muted-foreground" />
+                        )}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+
+                  {field.state.meta.isTouched && !field.state.meta.isValid ? (
+                    <FieldError errors={field.state.meta.errors} />
+                  ) : null}
+                </Field>
+              )}
+            </form.AppField>
             </div>
             <DialogFooter>
               <Button

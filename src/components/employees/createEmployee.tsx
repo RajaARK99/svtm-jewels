@@ -20,6 +20,7 @@ interface CreateEmployeeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: {
+    employeeId: number;
     userId: string;
     dateOfJoining: string;
     jobTitleId: string;
@@ -27,7 +28,7 @@ interface CreateEmployeeDialogProps {
     departmentId: string;
     locationId: string;
     legalEntityId: string;
-    reportingToUserId: string;
+    reportingToUserId: string | null;
     salesIncentiveTypeId?: string;
   }) => void;
   isLoading: boolean;
@@ -83,6 +84,7 @@ const CreateEmployeeDialog = ({
 
   const form = useAppForm({
     defaultValues: {
+      employeeId: 0 as number,
       userId: "",
       dateOfJoining: null as Date | null,
       jobTitleId: "",
@@ -90,7 +92,7 @@ const CreateEmployeeDialog = ({
       departmentId: "",
       locationId: "",
       legalEntityId: "",
-      reportingToUserId: "",
+      reportingToUserId: null as string | null,
       salesIncentiveTypeId: "",
     },
     onSubmit: async ({ value }) => {
@@ -98,6 +100,7 @@ const CreateEmployeeDialog = ({
         return;
       }
       onSubmit({
+        employeeId: value.employeeId,
         userId: value.userId,
         dateOfJoining: value.dateOfJoining.toISOString(),
         jobTitleId: value.jobTitleId,
@@ -115,6 +118,7 @@ const CreateEmployeeDialog = ({
     }),
     validators: {
       onDynamic: z.object({
+        employeeId: z.number().min(1, "Employee ID is required"),
         userId: z.string().min(1, "User is required"),
         dateOfJoining: z.date("Date of joining is required"),
         jobTitleId: z.string().min(1, "Job title is required"),
@@ -122,7 +126,10 @@ const CreateEmployeeDialog = ({
         departmentId: z.string().min(1, "Department is required"),
         locationId: z.string().min(1, "Location is required"),
         legalEntityId: z.string().min(1, "Legal entity is required"),
-        reportingToUserId: z.string().min(1, "Reporting to user is required"),
+        reportingToUserId: z
+          .string()
+          .min(1, "Reporting to user is required")
+          .nullable(),
         salesIncentiveTypeId: z.string(),
       }),
     },
@@ -200,6 +207,15 @@ const CreateEmployeeDialog = ({
                   <field.Combobox label="User" options={userOptions} required />
                 )}
               </form.AppField>
+              <form.AppField name="employeeId">
+                {(field) => (
+                  <field.NumberInput
+                    label="Employee ID"
+                    placeholder="Enter employee ID"
+                    required
+                  />
+                )}
+              </form.AppField>
 
               <form.AppField name="dateOfJoining">
                 {(field) => (
@@ -259,11 +275,7 @@ const CreateEmployeeDialog = ({
 
               <form.AppField name="reportingToUserId">
                 {(field) => (
-                  <field.Combobox
-                    label="Reporting To"
-                    options={userOptions}
-                    required
-                  />
+                  <field.Combobox label="Reporting To" options={userOptions} />
                 )}
               </form.AppField>
 

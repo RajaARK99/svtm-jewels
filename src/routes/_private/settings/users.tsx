@@ -1,8 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { SearchIcon } from "lucide-react";
+import { PencilIcon, SearchIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-// import { toast } from "sonner";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -28,14 +40,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import CreateUserDialog from "@/components/users/createUser";
+import EditUserDialog from "@/components/users/updateUser";
+import type { User } from "@/db/schema";
 import { useDebounce } from "@/hooks/use-debounce";
 import { auth } from "@/lib/auth/auth-client";
-// import CreateUserDialog from "@/components/users/createUser";
-// import EditUserDialog from "@/components/users/updateUser";
-// import type { User } from "@/db/schema";
 import { api } from "@/lib/orpc/client";
 import { formatDate } from "@/lib/utils";
-// import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_private/settings/users")({
   component: RouteComponent,
@@ -44,12 +60,12 @@ export const Route = createFileRoute("/_private/settings/users")({
 function RouteComponent() {
   const { data: session } = auth.useSession();
   console.log({ session });
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  // const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  // const [editDialogOpen, setEditDialogOpen] = useState(false);
-  // const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 1000);
 
@@ -86,64 +102,61 @@ function RouteComponent() {
     }),
   );
 
-  // Create user mutation
-  // const createMutation = useMutation(
-  //   api.userRouter.createUser.mutationOptions({
-  //     onSuccess: () => {
-  //       toast.success("User created successfully");
-  //       setCreateDialogOpen(false);
-  //       queryClient.invalidateQueries({
-  //         queryKey: api.userRouter.getUsers.queryKey(),
-  //       });
-  //     },
-  //     onError: (error) => {
-  //       toast.error(error.message ?? "Failed to create user");
-  //     },
-  //   }),
-  // );
+  const createMutation = useMutation(
+    api.userRouter.createUser.mutationOptions({
+      onSuccess: () => {
+        toast.success("User created successfully");
+        setCreateDialogOpen(false);
+        queryClient.invalidateQueries({
+          queryKey: api.userRouter.getUsers.queryKey(),
+        });
+      },
+      onError: (error) => {
+        toast.error(error.message ?? "Failed to create user");
+      },
+    }),
+  );
 
-  // Update user mutation
-  // const updateMutation = useMutation(
-  //   api.userRouter.updateUser.mutationOptions({
-  //     onSuccess: () => {
-  //       toast.success("User updated successfully");
-  //       setEditDialogOpen(false);
-  //       setSelectedUser(null);
-  //       queryClient.invalidateQueries({
-  //         queryKey: api.userRouter.getUsers.queryKey(),
-  //       });
-  //     },
-  //     onError: (error) => {
-  //      console.log({error});
-  //       toast.error(error.message ?? "Failed to update user");
-  //     },
-  //   }),
-  // );
+  const updateMutation = useMutation(
+    api.userRouter.updateUser.mutationOptions({
+      onSuccess: () => {
+        toast.success("User updated successfully");
+        setEditDialogOpen(false);
+        setSelectedUser(null);
+        queryClient.invalidateQueries({
+          queryKey: api.userRouter.getUsers.queryKey(),
+        });
+      },
+      onError: (error) => {
+        console.log({ error });
+        toast.error(error.message ?? "Failed to update user");
+      },
+    }),
+  );
 
-  // Delete user mutation
-  // const deleteMutation = useMutation(
-  //   api.userRouter.deleteUser.mutationOptions({
-  //     onSuccess: () => {
-  //       toast.success("User deleted successfully");
-  //       queryClient.invalidateQueries({
-  //         queryKey: api.userRouter.getUsers.queryKey(),
-  //       });
-  //     },
-  //     onError: (error) => {
-  //       console.log({error});
-  //       toast.error((error as any)?.data?.message ?? "Failed to delete user");
-  //     },
-  //   }),
-  // );
+  const deleteMutation = useMutation(
+    api.userRouter.deleteUser.mutationOptions({
+      onSuccess: () => {
+        toast.success("User deleted successfully");
+        queryClient.invalidateQueries({
+          queryKey: api.userRouter.getUsers.queryKey(),
+        });
+      },
+      onError: (error) => {
+        console.log({ error });
+        toast.error((error as any)?.data?.message ?? "Failed to delete user");
+      },
+    }),
+  );
 
-  // const handleEdit = (user: User) => {
-  //   setSelectedUser(user);
-  //   setEditDialogOpen(true);
-  // };
+  const handleEdit = (user: User) => {
+    setSelectedUser(user);
+    setEditDialogOpen(true);
+  };
 
-  // const handleDelete = (userId: string) => {
-  //   deleteMutation.mutate({ id: userId });
-  // };
+  const handleDelete = (userId: string) => {
+    deleteMutation.mutate({ id: userId });
+  };
 
   const totalPages = data?.total ? Math.ceil(data.total / limit) : 1;
 
@@ -156,12 +169,12 @@ function RouteComponent() {
             Manage system users and their permissions
           </p>
         </div>
-        {/* <CreateUserDialog
+        <CreateUserDialog
           open={createDialogOpen}
           onOpenChange={setCreateDialogOpen}
           onSubmit={(data) => createMutation.mutate(data)}
           isLoading={createMutation.isPending}
-        /> */}
+        />
       </div>
 
       {/* Filters */}
@@ -207,7 +220,7 @@ function RouteComponent() {
               <TableHead className="px-4 py-3">Role</TableHead>
               <TableHead className="px-4 py-3">Status</TableHead>
               <TableHead className="px-4 py-3">Created At</TableHead>
-              {/* <TableHead className="px-4 py-3 text-center">Actions</TableHead> */}
+              <TableHead className="px-4 py-3 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -260,7 +273,7 @@ function RouteComponent() {
                   <TableCell className="px-4 py-3">
                     {user.createdAt ? formatDate(user.createdAt) : "N/A"}
                   </TableCell>
-                  {/* <TableCell className="px-4 py-3 text-right">
+                  <TableCell className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
@@ -295,7 +308,7 @@ function RouteComponent() {
                         </AlertDialogContent>
                       </AlertDialog>
                     </div>
-                  </TableCell> */}
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -360,7 +373,7 @@ function RouteComponent() {
       )}
 
       {/* Edit Dialog */}
-      {/* {selectedUser && (
+      {selectedUser && (
         <EditUserDialog
           open={editDialogOpen}
           onOpenChange={(open) => {
@@ -368,10 +381,12 @@ function RouteComponent() {
             if (!open) setSelectedUser(null);
           }}
           user={selectedUser}
-          onSubmit={(data) => {updateMutation.mutate(data)}}
+          onSubmit={(data) => {
+            updateMutation.mutate(data);
+          }}
           isLoading={updateMutation.isPending}
         />
-      )} */}
+      )}
     </div>
   );
 }

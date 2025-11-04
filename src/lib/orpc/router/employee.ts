@@ -31,6 +31,7 @@ const createEmployee = protectedProcedure
   .handler(
     async ({
       input: {
+        employeeId,
         businessUnitId,
         departmentId,
         locationId,
@@ -46,11 +47,12 @@ const createEmployee = protectedProcedure
         const newEmployee = await db
           .insert(employee)
           .values({
+            employeeId,
             businessUnitId,
             departmentId,
             locationId,
             legalEntityId,
-            reportingToUserId,
+            reportingToUserId: reportingToUserId ?? null,
             dateOfJoining: new Date(dateOfJoining),
             jobTitleId,
             userId,
@@ -63,11 +65,16 @@ const createEmployee = protectedProcedure
           data: newEmployee[0],
         };
       } catch (error) {
-        if (error instanceof Error) {
-          throw new ORPCError("BAD_REQUEST", {
-            message: "Failed to create employee",
-          });
-        }
+        console.log({ error });
+        throw new ORPCError("BAD_REQUEST", {
+          data: {
+            success: false,
+            message:
+              error instanceof Error
+                ? error.message
+                : "Failed to create employee",
+          },
+        });
       }
     },
   );
@@ -336,6 +343,7 @@ const updateEmployee = protectedProcedure
     async ({
       input: {
         id,
+        employeeId,
         businessUnitId,
         departmentId,
         locationId,
@@ -351,6 +359,7 @@ const updateEmployee = protectedProcedure
         const updatedEmployee = await db
           .update(employee)
           .set({
+            employeeId,
             businessUnitId,
             departmentId,
             locationId,
@@ -369,11 +378,16 @@ const updateEmployee = protectedProcedure
           data: updatedEmployee[0],
         };
       } catch (error) {
-        if (error instanceof Error) {
-          throw new ORPCError("BAD_REQUEST", {
-            message: "Failed to update employee",
-          });
-        }
+        console.log({ error });
+        throw new ORPCError("BAD_REQUEST", {
+          data: {
+            success: false,
+            message:
+              error instanceof Error
+                ? error.message
+                : "Failed to update employee",
+          },
+        });
       }
     },
   );
@@ -407,11 +421,16 @@ const deleteEmployee = protectedProcedure
         data: deletedEmployee[0],
       };
     } catch (error) {
-      if (error instanceof Error) {
-        throw new ORPCError("BAD_REQUEST", {
-          message: "Failed to delete employee",
-        });
-      }
+      console.log({ error });
+      throw new ORPCError("BAD_REQUEST", {
+        data: {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to delete employee",
+        },
+      });
     }
   });
 

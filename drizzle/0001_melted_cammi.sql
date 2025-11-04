@@ -1,0 +1,1 @@
+ALTER TABLE "employee" ALTER COLUMN "reporting_to_user_id" DROP NOT NULL;

@@ -196,13 +196,10 @@ function RouteComponent() {
     optionsData?.find((opt) => opt.type === "businessUnit")?.data ?? [];
   const departments =
     optionsData?.find((opt) => opt.type === "department")?.data ?? [];
-  // const locations =
-  //   optionsData?.find((opt) => opt.type === "location")?.data ?? [];
-  // const legalEntities =
-  //   optionsData?.find((opt) => opt.type === "legalEntity")?.data ?? [];
+
   const salesIncentiveTypes =
     optionsData?.find((opt) => opt.type === "salesIncentiveType")?.data ?? [];
-  // const users = usersData?.data ?? [];
+  
 
   return (
     <div className="max-w-full space-y-8 overflow-x-hidden px-4 py-8 sm:px-6 lg:px-8">

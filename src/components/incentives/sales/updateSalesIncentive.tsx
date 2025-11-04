@@ -156,18 +156,6 @@ const UpdateSalesIncentiveDialog = ({
                     : formatDate(new Date(incentive.date))}
                 </p>
               </div>
-              <form.AppField name="coinAmountPerGM">
-                {(field) => {
-                  return (
-                    <field.NumberInput
-                      label="Coin Amount per GM"
-                      placeholder="Enter coin amount per GM"
-                      required
-                      step={0.01}
-                    />
-                  );
-                }}
-              </form.AppField>
               <form.AppField name="goldAmountPerGM">
                 {(field) => {
                   return (
@@ -180,6 +168,19 @@ const UpdateSalesIncentiveDialog = ({
                   );
                 }}
               </form.AppField>
+              <form.AppField name="coinAmountPerGM">
+                {(field) => {
+                  return (
+                    <field.NumberInput
+                      label="Coin Amount per GM"
+                      placeholder="Enter coin amount per GM"
+                      required
+                      step={0.01}
+                    />
+                  );
+                }}
+              </form.AppField>
+
               <form.AppField name="diamondAmountPerCT">
                 {(field) => {
                   return (

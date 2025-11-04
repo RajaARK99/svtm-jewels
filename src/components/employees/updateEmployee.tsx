@@ -11,21 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { Employee } from "@/db/schema";
 import { api } from "@/lib/orpc/client";
 import { Button } from "../ui/button";
-
-type Employee = {
-  id: string;
-  userId: string;
-  dateOfJoining: string | Date;
-  jobTitleId: string;
-  businessUnitId: string;
-  departmentId: string;
-  locationId: string;
-  legalEntityId: string;
-  reportingToUserId: string;
-  salesIncentiveTypeId?: string | null;
-};
 
 interface UpdateEmployeeDialogProps {
   open: boolean;
@@ -33,6 +21,7 @@ interface UpdateEmployeeDialogProps {
   employee: Employee;
   onSubmit: (data: {
     id: string;
+    employeeId?: number;
     userId?: string;
     dateOfJoining?: string;
     jobTitleId?: string;
@@ -40,7 +29,7 @@ interface UpdateEmployeeDialogProps {
     departmentId?: string;
     locationId?: string;
     legalEntityId?: string;
-    reportingToUserId?: string;
+    reportingToUserId?: string | null;
     salesIncentiveTypeId?: string;
   }) => void;
   isLoading: boolean;
@@ -100,6 +89,7 @@ const UpdateEmployeeDialog = ({
 
   const form = useAppForm({
     defaultValues: {
+      employeeId: employee.employeeId,
       userId: employee.userId,
       dateOfJoining: dateOfJoiningDate,
       jobTitleId: employee.jobTitleId,
@@ -113,6 +103,7 @@ const UpdateEmployeeDialog = ({
     onSubmit: async ({ value }) => {
       const updateData: {
         id: string;
+        employeeId?: number;
         userId?: string;
         dateOfJoining?: string;
         jobTitleId?: string;
@@ -120,11 +111,13 @@ const UpdateEmployeeDialog = ({
         departmentId?: string;
         locationId?: string;
         legalEntityId?: string;
-        reportingToUserId?: string;
+        reportingToUserId?: string | null;
         salesIncentiveTypeId?: string;
       } = { id: employee.id };
 
       // Only include changed fields
+      if (value.employeeId !== employee.employeeId)
+        updateData.employeeId = value.employeeId;
       if (value.userId !== employee.userId) updateData.userId = value.userId;
       if (
         value.dateOfJoining &&
@@ -142,7 +135,7 @@ const UpdateEmployeeDialog = ({
       if (value.legalEntityId !== employee.legalEntityId)
         updateData.legalEntityId = value.legalEntityId;
       if (value.reportingToUserId !== employee.reportingToUserId)
-        updateData.reportingToUserId = value.reportingToUserId;
+        updateData.reportingToUserId = value.reportingToUserId || null;
       if (value.salesIncentiveTypeId !== (employee.salesIncentiveTypeId || ""))
         updateData.salesIncentiveTypeId =
           value.salesIncentiveTypeId || undefined;
@@ -155,6 +148,7 @@ const UpdateEmployeeDialog = ({
     }),
     validators: {
       onDynamic: z.object({
+        employeeId: z.number().min(1, "Employee ID is required"),
         userId: z.string().min(1, "User is required"),
         dateOfJoining: z.date("Date of joining is required"),
         jobTitleId: z.string().min(1, "Job title is required"),
@@ -178,6 +172,7 @@ const UpdateEmployeeDialog = ({
           ? employee.dateOfJoining
           : new Date(employee.dateOfJoining);
       // Update form values when employee prop changes
+      form.setFieldValue("employeeId", employee.employeeId);
       form.setFieldValue("userId", employee.userId);
       form.setFieldValue("dateOfJoining", dateOfJoining);
       form.setFieldValue("jobTitleId", employee.jobTitleId);
@@ -249,6 +244,15 @@ const UpdateEmployeeDialog = ({
               <form.AppField name="userId">
                 {(field) => (
                   <field.Combobox label="User" options={userOptions} required />
+                )}
+              </form.AppField>
+              <form.AppField name="employeeId">
+                {(field) => (
+                  <field.NumberInput
+                    label="Employee ID"
+                    placeholder="Enter employee ID"
+                    required
+                  />
                 )}
               </form.AppField>
 

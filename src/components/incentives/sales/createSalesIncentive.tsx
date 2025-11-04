@@ -105,6 +105,18 @@ const CreateSalesIncentiveDialog = ({
                 {(field) => {
                   return <field.DatePicker label="Date" required />;
                 }}
+              </form.AppField> 
+              <form.AppField name="goldAmountPerGM">
+                {(field) => {
+                  return (
+                    <field.NumberInput
+                      label="Gold Amount per GM"
+                      placeholder="Enter gold amount per GM"
+                      required
+                      step={0.01}
+                    />
+                  );
+                }}
               </form.AppField>
               <form.AppField name="coinAmountPerGM">
                 {(field) => {
@@ -118,18 +130,7 @@ const CreateSalesIncentiveDialog = ({
                   );
                 }}
               </form.AppField>
-              <form.AppField name="goldAmountPerGM">
-                {(field) => {
-                  return (
-                    <field.NumberInput
-                      label="Gold Amount per GM"
-                      placeholder="Enter gold amount per GM"
-                      required
-                      step={0.01}
-                    />
-                  );
-                }}
-              </form.AppField>
+             
               <form.AppField name="diamondAmountPerCT">
                 {(field) => {
                   return (
