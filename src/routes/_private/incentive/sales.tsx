@@ -234,16 +234,18 @@ function RouteComponent() {
               <TableHead className="px-4 py-3">Coin 1/GM</TableHead>
               <TableHead className="px-4 py-3">Diamond 500/CT</TableHead>
               <TableHead className="px-4 py-3">Silver Antique 4/GM</TableHead>
-              <TableHead className="px-4 py-3">Silver/GM</TableHead>
+              <TableHead className="px-4 py-3">Silver/0.30GM</TableHead>
               <TableHead className="px-4 py-3">Total Incentive</TableHead>
-              <TableHead className="px-4 py-3">Staff 94%</TableHead>
-              <TableHead className="px-4 py-3">Staff 6%</TableHead>
               <TableHead className="px-4 py-3">
                 Total amount of Incentive 94%
               </TableHead>
               <TableHead className="px-4 py-3">
                 Total amount of Incentive 6%
               </TableHead>
+              <TableHead className="px-4 py-3">94% Incentive per person</TableHead>
+              <TableHead className="px-4 py-3">6% Incentive per person</TableHead>
+              <TableHead className="px-4 py-3">Staff 94%</TableHead>
+              <TableHead className="px-4 py-3">Staff 6%</TableHead>
               <TableHead className="px-4 py-3 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -293,6 +295,19 @@ function RouteComponent() {
                   <TableCell className="px-4 py-3 font-medium">
                     {incentive.totalIncentive.toFixed(2)}
                   </TableCell>
+
+                  <TableCell className="px-4 py-3">
+                    {incentive.totalSalesIncentiveFor94Percent?.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    {incentive.totalSalesIncentiveFor6Percent?.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    {incentive.totalIncentive94Percent?.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    {incentive.totalIncentive6Percent?.toFixed(2)}
+                  </TableCell>
                   <TableCell className="px-4 py-3">
                     {incentive.totalStaffPresentIn94Percent} /{" "}
                     {incentive.totalStaff94InPercent} (Absent:{" "}
@@ -302,12 +317,6 @@ function RouteComponent() {
                     {incentive.totalStaffPresentIn6Percent} /{" "}
                     {incentive.totalStaff6InPercent} (Absent:{" "}
                     {incentive.totalStaffAbsentIn6Percent})
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    {incentive.totalSalesIncentiveFor94Percent?.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    {incentive.totalSalesIncentiveFor6Percent?.toFixed(2)}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
