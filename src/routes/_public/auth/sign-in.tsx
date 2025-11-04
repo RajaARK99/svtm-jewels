@@ -86,23 +86,7 @@ function RouteComponent() {
           <p className="mt-4 font-semibold text-xl tracking-tight">
             Log in to SVTM Jewels
           </p>
-          <Button
-            onClick={async () => {
-              const { data, error } = await auth.signUp.email({
-                name: "Raja ARK",
-                email: "rajaark1909@gmail.com",
-                password: "Admin@123",
-              });
-              if (error) {
-                toast.error(error.message);
-              } else {
-                console.log({ data });
-                toast.success("User created successfully");
-              }
-            }}
-          >
-            sign-up
-          </Button>
+
           <form
             className="w-full space-y-4"
             onSubmit={(e) => {
