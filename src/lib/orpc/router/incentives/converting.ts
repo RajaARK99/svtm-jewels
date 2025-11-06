@@ -98,8 +98,8 @@ const getConvertingIncentives = protectedProcedure
             employeeIds: z.string().array().optional(),
             date: z
               .object({
-                startDate: z.iso.datetime(),
-                endDate: z.iso.datetime(),
+                startDate: z.iso.date(),
+                endDate: z.iso.date(),
               })
               .nullish(),
             typeIds: z.string().array().optional(),
@@ -153,18 +153,18 @@ const getConvertingIncentives = protectedProcedure
       // Date range filter
       if (filter?.date?.startDate && filter?.date?.endDate) {
         filterConditions.push(
-          gte(convertingIncentives.date, new Date(filter.date.startDate)),
+          gte(convertingIncentives.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
         );
         filterConditions.push(
-          lte(convertingIncentives.date, new Date(filter.date.endDate)),
+          lte(convertingIncentives.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
         );
       } else if (filter?.date?.startDate) {
         filterConditions.push(
-          gte(convertingIncentives.date, new Date(filter.date.startDate)),
+          gte(convertingIncentives.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
         );
       } else if (filter?.date?.endDate) {
         filterConditions.push(
-          lte(convertingIncentives.date, new Date(filter.date.endDate)),
+          lte(convertingIncentives.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
         );
       }
 

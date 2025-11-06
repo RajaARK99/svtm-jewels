@@ -494,8 +494,8 @@ const getSalesIncentives = protectedProcedure
           .object({
             date: z
               .object({
-                startDate: z.iso.datetime(),
-                endDate: z.iso.datetime(),
+                startDate: z.iso.date(),
+                endDate: z.iso.date(),
               })
               .nullish(),
             totalIncentive: z
@@ -557,18 +557,18 @@ const getSalesIncentives = protectedProcedure
       // Date range filter
       if (filter?.date?.startDate && filter?.date?.endDate) {
         filterConditions.push(
-          gte(salesIncentives.date, new Date(filter.date.startDate)),
+          gte(salesIncentives.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
         );
         filterConditions.push(
-          lte(salesIncentives.date, new Date(filter.date.endDate)),
+          lte(salesIncentives.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
         );
       } else if (filter?.date?.startDate) {
         filterConditions.push(
-          gte(salesIncentives.date, new Date(filter.date.startDate)),
+          gte(salesIncentives.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
         );
       } else if (filter?.date?.endDate) {
         filterConditions.push(
-          lte(salesIncentives.date, new Date(filter.date.endDate)),
+          lte(salesIncentives.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
         );
       }
 
@@ -669,6 +669,15 @@ const getEmployeesForSalesIncentive = protectedProcedure
             email: z.string(),
             salesIncentiveTypeId: z.string().nullish(),
             salesIncentiveTypeName: z.string().nullish(),
+            attendanceTypes: z
+              .array(
+                z.object({
+                  id: z.string(),
+                  name: z.string(),
+                  code: z.string().nullish(),
+                }),
+              )
+              .optional(),
           }),
         ),
         total: z.number(),
@@ -697,6 +706,52 @@ const getEmployeesForSalesIncentive = protectedProcedure
 
       const targetDate = new Date(salesIncentive.date);
       targetDate.setHours(0, 0, 0, 0);
+
+      // Helper function to fetch attendance types for employees
+      const fetchAttendanceTypesForEmployees = async (
+        employeeIds: string[],
+      ) => {
+        if (employeeIds.length === 0) return new Map<string, any[]>();
+
+        const attendanceRecords = await db
+          .select({
+            employeeId: employeeAttendance.employeeId,
+            attendanceId: attendance.id,
+            attendanceName: attendance.name,
+            attendanceCode: attendance.code,
+          })
+          .from(employeeAttendance)
+          .innerJoin(
+            employeeAttendanceType,
+            eq(
+              employeeAttendance.id,
+              employeeAttendanceType.employeeAttendanceId,
+            ),
+          )
+          .innerJoin(
+            attendance,
+            eq(employeeAttendanceType.attendanceId, attendance.id),
+          )
+          .where(
+            and(
+              inArray(employeeAttendance.employeeId, employeeIds),
+              sql`${employeeAttendance.date}::date = ${targetDate}::date`,
+            ),
+          );
+
+        const attendanceMap = new Map<string, any[]>();
+        for (const record of attendanceRecords) {
+          const existing = attendanceMap.get(record.employeeId) ?? [];
+          existing.push({
+            id: record.attendanceId,
+            name: record.attendanceName,
+            code: record.attendanceCode,
+          });
+          attendanceMap.set(record.employeeId, existing);
+        }
+
+        return attendanceMap;
+      };
 
       // Determine which attendance codes to filter by
       let attendanceCodesToFilter: string[] | undefined;
@@ -739,6 +794,10 @@ const getEmployeesForSalesIncentive = protectedProcedure
           .limit(pagination?.limit ?? 10)
           .offset(((pagination?.page ?? 1) - 1) * (pagination?.limit ?? 10));
 
+        // Fetch attendance types for all employees
+        const employeeIds = records.map((r) => r.id);
+        const attendanceMap = await fetchAttendanceTypesForEmployees(employeeIds);
+
         return {
           data: records.map((record) => ({
             id: record.id,
@@ -746,6 +805,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
             email: record.email || "Unknown",
             salesIncentiveTypeId: record.salesIncentiveTypeId,
             salesIncentiveTypeName: record.salesIncentiveTypeName,
+            attendanceTypes: attendanceMap.get(record.id) ?? [],
           })),
           total,
           page: pagination?.page ?? 1,
@@ -847,6 +907,10 @@ const getEmployeesForSalesIncentive = protectedProcedure
           .limit(pagination?.limit ?? 10)
           .offset(((pagination?.page ?? 1) - 1) * (pagination?.limit ?? 10));
 
+        // Fetch attendance types for all employees
+        const employeeIds = records.map((r) => r.id);
+        const attendanceMap = await fetchAttendanceTypesForEmployees(employeeIds);
+
         return {
           data: records.map((record) => ({
             id: record.id,
@@ -854,6 +918,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
             email: record.email || "Unknown",
             salesIncentiveTypeId: record.salesIncentiveTypeId,
             salesIncentiveTypeName: record.salesIncentiveTypeName,
+            attendanceTypes: attendanceMap.get(record.id) ?? [],
           })),
           total,
           page: pagination?.page ?? 1,
@@ -896,6 +961,10 @@ const getEmployeesForSalesIncentive = protectedProcedure
         .limit(pagination?.limit ?? 10)
         .offset(((pagination?.page ?? 1) - 1) * (pagination?.limit ?? 10));
 
+      // Fetch attendance types for all employees
+      const employeeIds = records.map((r) => r.id);
+      const attendanceMap = await fetchAttendanceTypesForEmployees(employeeIds);
+
       return {
         data: records.map((record) => ({
           id: record.id,
@@ -903,6 +972,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
           email: record.email || "Unknown",
           salesIncentiveTypeId: record.salesIncentiveTypeId,
           salesIncentiveTypeName: record.salesIncentiveTypeName,
+          attendanceTypes: attendanceMap.get(record.id) ?? [],
         })),
         total,
         page: pagination?.page ?? 1,

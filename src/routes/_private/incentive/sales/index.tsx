@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDownIcon, PencilIcon, PlusIcon, XIcon } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  ChevronDownIcon,
+  EyeIcon,
+  PencilIcon,
+  PlusIcon,
+  XIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import CreateSalesIncentiveDialog from "@/components/incentives/sales/createSalesIncentive";
@@ -32,12 +38,14 @@ import {
 import type { SalesIncentive } from "@/db/schema";
 import { api } from "@/lib/orpc/client";
 import { formatDate } from "@/lib/utils";
+import dayjs from "dayjs";
 
-export const Route = createFileRoute("/_private/incentive/sales")({
+export const Route = createFileRoute("/_private/incentive/sales/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -212,12 +220,13 @@ function RouteComponent() {
                     setFilters({
                       ...filters,
                       date: {
-                        startDate: date?.from?.toISOString() ?? undefined,
-                        endDate: date?.to?.toISOString() ?? undefined,
+                        startDate: dayjs(date?.from).format("YYYY-MM-DD") ?? undefined,
+                        endDate: dayjs(date?.to).format("YYYY-MM-DD") ?? undefined,
                       },
                     });
                   }
                 }}
+                autoFocus
               />
             </PopoverContent>
           </Popover>
@@ -242,8 +251,12 @@ function RouteComponent() {
               <TableHead className="px-4 py-3">
                 Total amount of Incentive 6%
               </TableHead>
-              <TableHead className="px-4 py-3">94% Incentive per person</TableHead>
-              <TableHead className="px-4 py-3">6% Incentive per person</TableHead>
+              <TableHead className="px-4 py-3">
+                94% Incentive per person
+              </TableHead>
+              <TableHead className="px-4 py-3">
+                6% Incentive per person
+              </TableHead>
               <TableHead className="px-4 py-3">Staff 94%</TableHead>
               <TableHead className="px-4 py-3">Staff 6%</TableHead>
               <TableHead className="px-4 py-3 text-center">Actions</TableHead>
@@ -319,15 +332,27 @@ function RouteComponent() {
                     {incentive.totalStaffAbsentIn6Percent})
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(incentive)}
-                      >
-                        <PencilIcon className="size-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        navigate({
+                          to: "/incentive/sales/$id/employee",
+                          params: {
+                            id: incentive.id,
+                          },
+                        });
+                      }}
+                    >
+                      <EyeIcon className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(incentive)}
+                    >
+                      <PencilIcon className="size-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

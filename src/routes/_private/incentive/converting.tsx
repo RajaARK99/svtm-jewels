@@ -39,6 +39,7 @@ import {
 import { api } from "@/lib/orpc/client";
 import type { ConvertingIncentive } from "@/lib/orpc/router/incentives/converting";
 import { formatDate } from "@/lib/utils";
+import dayjs from "dayjs";
 
 export const Route = createFileRoute("/_private/incentive/converting")({
   component: RouteComponent,
@@ -235,8 +236,8 @@ function RouteComponent() {
                     setFilters({
                       ...filters,
                       date: {
-                        startDate: date?.from?.toISOString() ?? undefined,
-                        endDate: date?.to?.toISOString() ?? undefined,
+                        startDate: dayjs(date?.from).format("YYYY-MM-DD") ?? undefined,
+                        endDate: dayjs(date?.to).format("YYYY-MM-DD") ?? undefined,
                       },
                     });
                   }

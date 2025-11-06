@@ -19,8 +19,9 @@ import { Route as PublicAuthSignInRouteImport } from './routes/_public/auth/sign
 import { Route as PrivateSettingsUsersRouteImport } from './routes/_private/settings/users'
 import { Route as PrivateSettingsEmployeesRouteImport } from './routes/_private/settings/employees'
 import { Route as PrivateSettingsAttendanceRouteImport } from './routes/_private/settings/attendance'
-import { Route as PrivateIncentiveSalesRouteImport } from './routes/_private/incentive/sales'
 import { Route as PrivateIncentiveConvertingRouteImport } from './routes/_private/incentive/converting'
+import { Route as PrivateIncentiveSalesIndexRouteImport } from './routes/_private/incentive/sales/index'
+import { Route as PrivateIncentiveSalesIdEmployeeRouteImport } from './routes/_private/incentive/sales/$id/employee'
 
 const PublicRouteRoute = PublicRouteRouteImport.update({
   id: '/_public',
@@ -72,15 +73,22 @@ const PrivateSettingsAttendanceRoute =
     path: '/settings/attendance',
     getParentRoute: () => PrivateRouteRoute,
   } as any)
-const PrivateIncentiveSalesRoute = PrivateIncentiveSalesRouteImport.update({
-  id: '/incentive/sales',
-  path: '/incentive/sales',
-  getParentRoute: () => PrivateRouteRoute,
-} as any)
 const PrivateIncentiveConvertingRoute =
   PrivateIncentiveConvertingRouteImport.update({
     id: '/incentive/converting',
     path: '/incentive/converting',
+    getParentRoute: () => PrivateRouteRoute,
+  } as any)
+const PrivateIncentiveSalesIndexRoute =
+  PrivateIncentiveSalesIndexRouteImport.update({
+    id: '/incentive/sales/',
+    path: '/incentive/sales/',
+    getParentRoute: () => PrivateRouteRoute,
+  } as any)
+const PrivateIncentiveSalesIdEmployeeRoute =
+  PrivateIncentiveSalesIdEmployeeRouteImport.update({
+    id: '/incentive/sales/$id/employee',
+    path: '/incentive/sales/$id/employee',
     getParentRoute: () => PrivateRouteRoute,
   } as any)
 
@@ -88,25 +96,27 @@ export interface FileRoutesByFullPath {
   '/api/$': typeof ApiSplatRoute
   '/': typeof PrivateIndexRoute
   '/incentive/converting': typeof PrivateIncentiveConvertingRoute
-  '/incentive/sales': typeof PrivateIncentiveSalesRoute
   '/settings/attendance': typeof PrivateSettingsAttendanceRoute
   '/settings/employees': typeof PrivateSettingsEmployeesRoute
   '/settings/users': typeof PrivateSettingsUsersRoute
   '/auth/sign-in': typeof PublicAuthSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/incentive/sales': typeof PrivateIncentiveSalesIndexRoute
+  '/incentive/sales/$id/employee': typeof PrivateIncentiveSalesIdEmployeeRoute
 }
 export interface FileRoutesByTo {
   '/api/$': typeof ApiSplatRoute
   '/': typeof PrivateIndexRoute
   '/incentive/converting': typeof PrivateIncentiveConvertingRoute
-  '/incentive/sales': typeof PrivateIncentiveSalesRoute
   '/settings/attendance': typeof PrivateSettingsAttendanceRoute
   '/settings/employees': typeof PrivateSettingsEmployeesRoute
   '/settings/users': typeof PrivateSettingsUsersRoute
   '/auth/sign-in': typeof PublicAuthSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/incentive/sales': typeof PrivateIncentiveSalesIndexRoute
+  '/incentive/sales/$id/employee': typeof PrivateIncentiveSalesIdEmployeeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -115,13 +125,14 @@ export interface FileRoutesById {
   '/api/$': typeof ApiSplatRoute
   '/_private/': typeof PrivateIndexRoute
   '/_private/incentive/converting': typeof PrivateIncentiveConvertingRoute
-  '/_private/incentive/sales': typeof PrivateIncentiveSalesRoute
   '/_private/settings/attendance': typeof PrivateSettingsAttendanceRoute
   '/_private/settings/employees': typeof PrivateSettingsEmployeesRoute
   '/_private/settings/users': typeof PrivateSettingsUsersRoute
   '/_public/auth/sign-in': typeof PublicAuthSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/_private/incentive/sales/': typeof PrivateIncentiveSalesIndexRoute
+  '/_private/incentive/sales/$id/employee': typeof PrivateIncentiveSalesIdEmployeeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -129,25 +140,27 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/'
     | '/incentive/converting'
-    | '/incentive/sales'
     | '/settings/attendance'
     | '/settings/employees'
     | '/settings/users'
     | '/auth/sign-in'
     | '/api/auth/$'
     | '/api/rpc/$'
+    | '/incentive/sales'
+    | '/incentive/sales/$id/employee'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/api/$'
     | '/'
     | '/incentive/converting'
-    | '/incentive/sales'
     | '/settings/attendance'
     | '/settings/employees'
     | '/settings/users'
     | '/auth/sign-in'
     | '/api/auth/$'
     | '/api/rpc/$'
+    | '/incentive/sales'
+    | '/incentive/sales/$id/employee'
   id:
     | '__root__'
     | '/_private'
@@ -155,13 +168,14 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/_private/'
     | '/_private/incentive/converting'
-    | '/_private/incentive/sales'
     | '/_private/settings/attendance'
     | '/_private/settings/employees'
     | '/_private/settings/users'
     | '/_public/auth/sign-in'
     | '/api/auth/$'
     | '/api/rpc/$'
+    | '/_private/incentive/sales/'
+    | '/_private/incentive/sales/$id/employee'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -244,18 +258,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateSettingsAttendanceRouteImport
       parentRoute: typeof PrivateRouteRoute
     }
-    '/_private/incentive/sales': {
-      id: '/_private/incentive/sales'
-      path: '/incentive/sales'
-      fullPath: '/incentive/sales'
-      preLoaderRoute: typeof PrivateIncentiveSalesRouteImport
-      parentRoute: typeof PrivateRouteRoute
-    }
     '/_private/incentive/converting': {
       id: '/_private/incentive/converting'
       path: '/incentive/converting'
       fullPath: '/incentive/converting'
       preLoaderRoute: typeof PrivateIncentiveConvertingRouteImport
+      parentRoute: typeof PrivateRouteRoute
+    }
+    '/_private/incentive/sales/': {
+      id: '/_private/incentive/sales/'
+      path: '/incentive/sales'
+      fullPath: '/incentive/sales'
+      preLoaderRoute: typeof PrivateIncentiveSalesIndexRouteImport
+      parentRoute: typeof PrivateRouteRoute
+    }
+    '/_private/incentive/sales/$id/employee': {
+      id: '/_private/incentive/sales/$id/employee'
+      path: '/incentive/sales/$id/employee'
+      fullPath: '/incentive/sales/$id/employee'
+      preLoaderRoute: typeof PrivateIncentiveSalesIdEmployeeRouteImport
       parentRoute: typeof PrivateRouteRoute
     }
   }
@@ -264,19 +285,21 @@ declare module '@tanstack/react-router' {
 interface PrivateRouteRouteChildren {
   PrivateIndexRoute: typeof PrivateIndexRoute
   PrivateIncentiveConvertingRoute: typeof PrivateIncentiveConvertingRoute
-  PrivateIncentiveSalesRoute: typeof PrivateIncentiveSalesRoute
   PrivateSettingsAttendanceRoute: typeof PrivateSettingsAttendanceRoute
   PrivateSettingsEmployeesRoute: typeof PrivateSettingsEmployeesRoute
   PrivateSettingsUsersRoute: typeof PrivateSettingsUsersRoute
+  PrivateIncentiveSalesIndexRoute: typeof PrivateIncentiveSalesIndexRoute
+  PrivateIncentiveSalesIdEmployeeRoute: typeof PrivateIncentiveSalesIdEmployeeRoute
 }
 
 const PrivateRouteRouteChildren: PrivateRouteRouteChildren = {
   PrivateIndexRoute: PrivateIndexRoute,
   PrivateIncentiveConvertingRoute: PrivateIncentiveConvertingRoute,
-  PrivateIncentiveSalesRoute: PrivateIncentiveSalesRoute,
   PrivateSettingsAttendanceRoute: PrivateSettingsAttendanceRoute,
   PrivateSettingsEmployeesRoute: PrivateSettingsEmployeesRoute,
   PrivateSettingsUsersRoute: PrivateSettingsUsersRoute,
+  PrivateIncentiveSalesIndexRoute: PrivateIncentiveSalesIndexRoute,
+  PrivateIncentiveSalesIdEmployeeRoute: PrivateIncentiveSalesIdEmployeeRoute,
 }
 
 const PrivateRouteRouteWithChildren = PrivateRouteRoute._addFileChildren(

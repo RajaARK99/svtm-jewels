@@ -174,18 +174,18 @@ const getAttendance = protectedProcedure
       // Date range filter
       if (filter?.date?.startDate && filter?.date?.endDate) {
         filterConditions.push(
-          gte(employeeAttendance.date, new Date(filter.date.startDate)),
+          gte(employeeAttendance.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
         );
         filterConditions.push(
-          lte(employeeAttendance.date, new Date(filter.date.endDate)),
+          lte(employeeAttendance.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
         );
       } else if (filter?.date?.startDate) {
         filterConditions.push(
-          gte(employeeAttendance.date, new Date(filter.date.startDate)),
+          gte(employeeAttendance.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
         );
       } else if (filter?.date?.endDate) {
         filterConditions.push(
-          lte(employeeAttendance.date, new Date(filter.date.endDate)),
+          lte(employeeAttendance.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
         );
       }
 
