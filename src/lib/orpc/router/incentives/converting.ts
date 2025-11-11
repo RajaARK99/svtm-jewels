@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import * as XLSX from "xlsx";
 import z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/schema/auth";
@@ -389,6 +390,7 @@ const updateConvertingIncentive = protectedProcedure
       });
     }
   });
+
 const getExcelFile = protectedProcedure
   .route({
     path: "/excel",
@@ -478,9 +480,6 @@ const getExcelFile = protectedProcedure
       };
 
       const dateRangeStr = `${formatDate(startDate)} - ${formatDate(endDate)}`;
-
-      // Dynamically import xlsx to avoid bundling issues in edge runtime
-      const XLSX = await import("xlsx");
 
       // Create workbook and worksheet
       const workbook = XLSX.utils.book_new();
