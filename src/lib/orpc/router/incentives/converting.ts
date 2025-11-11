@@ -1,6 +1,6 @@
+import { Buffer } from "node:buffer";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
-// import * as XLSX from "xlsx";
 import z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/schema/auth";
@@ -479,57 +479,59 @@ const getExcelFile = protectedProcedure
 
       const dateRangeStr = `${formatDate(startDate)} - ${formatDate(endDate)}`;
 
+      // Dynamically import xlsx to avoid bundling issues in edge runtime
+      const XLSX = await import("xlsx");
+
       // Create workbook and worksheet
-      // const workbook = XLSX.utils.book_new();
+      const workbook = XLSX.utils.book_new();
 
-      // // Prepare data for Excel
-      // const excelData: (string | number)[][] = [
-      //   [`Converting Incentive ${dateRangeStr}`], // First row heading
-      //   ["Employee Number", "Employee Name", "Amount"], // Second row headings
-      // ];
+      // Prepare data for Excel
+      const excelData: (string | number)[][] = [
+        [`Converting Incentive ${dateRangeStr}`], // First row heading
+        ["Employee Number", "Employee Name", "Amount"], // Second row headings
+      ];
 
-      // // Add data rows
-      // records.forEach((record) => {
-      //   excelData.push([
-      //     record.employeeNumber ?? "",
-      //     record.employeeName ?? "Unknown",
-      //     Number(record.totalAmount) || 0,
-      //   ]);
-      // });
+      // Add data rows
+      records.forEach((record) => {
+        excelData.push([
+          record.employeeNumber ?? "",
+          record.employeeName ?? "Unknown",
+          Number(record.totalAmount) || 0,
+        ]);
+      });
 
-      // // Create worksheet from data
-      // const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+      // Create worksheet from data
+      const worksheet = XLSX.utils.aoa_to_sheet(excelData);
 
-      // // Merge cells for the first row heading
-      // worksheet["!merges"] = [
-      //   { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }, // Merge first row across 3 columns
-      // ];
+      // Merge cells for the first row heading
+      worksheet["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }, // Merge first row across 3 columns
+      ];
 
-      // // Set column widths
-      // worksheet["!cols"] = [
-      //   { wch: 20 }, // Employee Number
-      //   { wch: 30 }, // Employee Name
-      //   { wch: 15 }, // Amount
-      // ];
+      // Set column widths
+      worksheet["!cols"] = [
+        { wch: 20 }, // Employee Number
+        { wch: 30 }, // Employee Name
+        { wch: 15 }, // Amount
+      ];
 
-      // // Add worksheet to workbook
-      // XLSX.utils.book_append_sheet(workbook, worksheet, `${dateRangeStr}`);
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, `${dateRangeStr}`);
 
-      // // Convert workbook to buffer
-      // const excelBuffer = XLSX.write(workbook, {
-      //   type: "buffer",
-      //   bookType: "xlsx",
-      // });
+      // Convert workbook to buffer
+      const excelBuffer = XLSX.write(workbook, {
+        type: "buffer",
+        bookType: "xlsx",
+      });
 
-      // // Convert buffer to base64 string
-      // const base64String = Buffer.from(excelBuffer).toString("base64");
+      // Convert buffer to base64 string
+      const base64String = Buffer.from(excelBuffer).toString("base64");
 
-      // return {
-      //   success: true,
-      //   message: "Excel file fetched successfully",
-        // data: base64String,
-      // };
-      return null;
+      return {
+        success: true,
+        message: "Excel file fetched successfully",
+        data: base64String,
+      };
     } catch (error) {
       throw new ORPCError("BAD_REQUEST", {
         data: {

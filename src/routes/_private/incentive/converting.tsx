@@ -173,28 +173,28 @@ function RouteComponent() {
  const { mutate } = useMutation(
     api.incentivesRouter.convertingIncentiveRouter.getExcelFile.mutationOptions({
       onSuccess: (data) => {
-        // if(data?.data){
+        if(data?.data){
         // Decode base64 string to binary data
-        // const binaryString = atob(data.data);
-        // const bytes = new Uint8Array(binaryString.length);
-        // for (let i = 0; i < binaryString.length; i++) {
-        //   bytes[i] = binaryString.charCodeAt(i);
-        // }
-        // const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        // const url = window.URL.createObjectURL(blob);
-        // const a = document.createElement("a");
-        // a.href = url;
+        const binaryString = atob(data.data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
         // Generate filename based on date range or use default
-        // const dateRange = filters?.date?.startDate && filters?.date?.endDate
-        //   ? `${filters.date.startDate}_to_${filters.date.endDate}`
-        //   : new Date().toISOString().split('T')[0];
-        // a.download = `converting_incentive_${dateRange}.xlsx`;
-        // a.click();
-        // window.URL.revokeObjectURL(url);
-        // toast.success("Excel file downloaded successfully");
-        // } else {
-        //   toast.error(data?.message ?? "Failed to export excel");
-        // }
+        const dateRange = filters?.date?.startDate && filters?.date?.endDate
+          ? `${filters.date.startDate}_to_${filters.date.endDate}`
+          : new Date().toISOString().split('T')[0];
+        a.download = `converting_incentive_${dateRange}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        toast.success("Excel file downloaded successfully");
+        } else {
+          toast.error(data?.message ?? "Failed to export excel");
+        }
       },
       onError: (error) => {
         console.log({ error });
