@@ -4,6 +4,7 @@ import { employeeRouter } from "./employee";
 import { incentivesRouter } from "./incentives";
 import { getOptions } from "./options";
 import { userRouter } from "./user";
+import { dashboardRouter } from "./dashboard";
 
 export const appRouter = {
   employeeRouter,
@@ -11,6 +12,7 @@ export const appRouter = {
   attendanceRouter,
   incentivesRouter,
   userRouter,
+  dashboardRouter,
 };
 
 export type AppRouter = typeof appRouter;
