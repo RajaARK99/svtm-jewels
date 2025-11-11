@@ -1,4 +1,4 @@
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useSearch } from "@tanstack/react-router";
 import { HomeIcon, Moon, Sun } from "lucide-react";
 import { Fragment } from "react/jsx-runtime";
 import {
@@ -23,6 +23,15 @@ import { useTheme } from "../theme-provider";
 function segmentToTitle(segment: string) {
   return segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+function isUUID(value: string) {
+  // Normalize spaces to hyphens for UUID validation
+  const normalized = value.replace(/\s+/g, "-");
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    normalized,
+  );
+}
+
 export function SiteHeader() {
   const { setTheme } = useTheme();
   const location = useLocation();
@@ -36,6 +45,11 @@ export function SiteHeader() {
       isLast: idx === segments.length - 1,
     };
   });
+
+  const search = useSearch({
+    strict: false,
+  });
+  console.log({ search });
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -60,10 +74,20 @@ export function SiteHeader() {
             {crumbs.map((c) => (
               <Fragment key={c.href}>
                 <BreadcrumbItem>
-                  {c.isLast ? (
-                    <BreadcrumbPage>{c.label}</BreadcrumbPage>
+                  {c.isLast || (search.date && isUUID(c.label)) ? (
+                    <BreadcrumbPage>
+                      {search.date && isUUID(c.label) ? search.date : c.label}
+                    </BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink href={c.href}>{c.label}</BreadcrumbLink>
+                    <BreadcrumbLink
+                      href={
+                        c.label === "Incentive"
+                          ? "/incentive/converting"
+                          : c.href
+                      }
+                    >
+                      {search.date && isUUID(c.label) ? search.date : c.label}
+                    </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
                 {!c.isLast && <BreadcrumbSeparator> / </BreadcrumbSeparator>}

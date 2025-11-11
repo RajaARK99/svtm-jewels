@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
 import {
   ChevronDownIcon,
   EyeIcon,
@@ -39,7 +40,6 @@ import {
 import type { SalesIncentive } from "@/db/schema";
 import { api } from "@/lib/orpc/client";
 import { formatDate } from "@/lib/utils";
-import dayjs from "dayjs";
 
 export const Route = createFileRoute("/_private/incentive/sales/")({
   component: RouteComponent,
@@ -105,12 +105,9 @@ function RouteComponent() {
             bytes[i] = binaryString.charCodeAt(i);
           }
 
-          const blob = new Blob(
-            [bytes],
-            {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            },
-          );
+          const blob = new Blob([bytes], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -130,9 +127,7 @@ function RouteComponent() {
       onError: (error: any) => {
         console.log({ error });
         toast.error(
-          error?.data?.message ??
-            error?.message ??
-            "Failed to export excel",
+          error?.data?.message ?? error?.message ?? "Failed to export excel",
         );
       },
     }),
@@ -266,8 +261,10 @@ function RouteComponent() {
                     setFilters({
                       ...filters,
                       date: {
-                        startDate: dayjs(date?.from).format("YYYY-MM-DD") ?? undefined,
-                        endDate: dayjs(date?.to).format("YYYY-MM-DD") ?? undefined,
+                        startDate:
+                          dayjs(date?.from).format("YYYY-MM-DD") ?? undefined,
+                        endDate:
+                          dayjs(date?.to).format("YYYY-MM-DD") ?? undefined,
                       },
                     });
                   }
@@ -407,6 +404,9 @@ function RouteComponent() {
                           to: "/incentive/sales/$id/employee",
                           params: {
                             id: incentive.id,
+                          },
+                          search: {
+                            date: dayjs(incentive.date).format("DD, MMM YYYY"),
                           },
                         });
                       }}

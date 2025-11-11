@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { Option } from "@/components/ui/multiselect";
+import MultipleSelector from "@/components/ui/multiselect";
 import {
   Pagination,
   PaginationContent,
@@ -29,7 +30,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/lib/orpc/client";
-import MultipleSelector from "@/components/ui/multiselect";
 
 export const Route = createFileRoute("/_private/incentive/sales/$id/employee")({
   component: RouteComponent,
@@ -41,6 +41,12 @@ export const Route = createFileRoute("/_private/incentive/sales/$id/employee")({
         })
         .parse(param),
   },
+  validateSearch: (search) =>
+    z
+      .object({
+        date: z.string(),
+      })
+      .parse(search),
 });
 
 function RouteComponent() {
@@ -66,7 +72,8 @@ function RouteComponent() {
   const salesIncentiveTypes: Option[] =
     optionsData
       ?.find((opt) => opt.type === "salesIncentiveType")
-      ?.data?.filter((type) => type.name?.toLowerCase() !== "no incentive")?.map((type) => ({
+      ?.data?.filter((type) => type.name?.toLowerCase() !== "no incentive")
+      ?.map((type) => ({
         value: type.id,
         label: type.name,
       })) ?? [];
@@ -193,7 +200,7 @@ function RouteComponent() {
         </div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
           {/* Sales Incentive Type Filter */}
-           <div className="max-w-[300px] space-y-2">
+          <div className="max-w-[300px] space-y-2">
             <Label htmlFor="sales-incentive-type">Sales Incentive Type</Label>
             <MultipleSelector
               value={salesIncentiveTypes.filter((type) =>
@@ -203,7 +210,7 @@ function RouteComponent() {
               placeholder="Select incentive types..."
               onChange={handleSalesIncentiveTypeChange}
             />
-          </div> 
+          </div>
 
           {/* Present/Absent Filters */}
           <div className="flex gap-4">
@@ -263,7 +270,9 @@ function RouteComponent() {
             ) : (
               data.data.map((employee) => (
                 <TableRow key={employee.id}>
-                  <TableCell className="px-4 py-3">{employee.employeeId}</TableCell>
+                  <TableCell className="px-4 py-3">
+                    {employee.employeeId}
+                  </TableCell>
                   <TableCell className="px-4 py-3">{employee.name}</TableCell>
                   <TableCell className="px-4 py-3">{employee.email}</TableCell>
                   <TableCell className="px-4 py-3">

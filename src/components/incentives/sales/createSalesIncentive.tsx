@@ -1,4 +1,5 @@
 import { revalidateLogic } from "@tanstack/react-form";
+import dayjs from "dayjs";
 import { useEffect } from "react";
 import z from "zod";
 import { useAppForm } from "@/components/form/hooks";
@@ -11,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import dayjs from "dayjs";
 
 interface CreateSalesIncentiveDialogProps {
   open: boolean;
@@ -111,8 +111,8 @@ const CreateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Gold Amount per GM"
-                      placeholder="Enter gold amount per GM"
+                      label="Gold Weight per GM"
+                      placeholder="Enter gold weight per GM"
                       required
                       step={0.01}
                     />
@@ -123,8 +123,8 @@ const CreateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Coin Amount per GM"
-                      placeholder="Enter coin amount per GM"
+                      label="Coin Weight per GM"
+                      placeholder="Enter coin weight per GM"
                       required
                       step={0.01}
                     />
@@ -136,8 +136,8 @@ const CreateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Diamond Amount per CT"
-                      placeholder="Enter diamond amount per CT"
+                      label="Diamond Weight per CT"
+                      placeholder="Enter diamond weight per CT"
                       required
                       step={0.01}
                     />
@@ -148,8 +148,8 @@ const CreateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Silver Antique Amount per GM"
-                      placeholder="Enter silver antique amount per GM"
+                      label="Silver Antique Weight per GM"
+                      placeholder="Enter silver antique weight per GM"
                       required
                       step={0.01}
                     />
@@ -160,8 +160,8 @@ const CreateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Silver Amount per GM"
-                      placeholder="Enter silver amount per GM"
+                      label="Silver Weight per GM"
+                      placeholder="Enter silver weight per GM"
                       required
                       step={0.01}
                     />
