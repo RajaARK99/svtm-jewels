@@ -345,6 +345,7 @@ function RouteComponent() {
         <Table className="w-full min-w-[800px]">
           <TableHeader>
             <TableRow>
+              <TableHead className="px-4 py-3">ID</TableHead>
               <TableHead className="px-4 py-3">Employee</TableHead>
               <TableHead className="px-4 py-3">Email</TableHead>
               <TableHead className="px-4 py-3">Date</TableHead>
@@ -374,6 +375,7 @@ function RouteComponent() {
             ) : (
               data.data.map((incentive) => (
                 <TableRow key={incentive.id}>
+                  <TableCell className="px-4 py-3">{incentive.employeeNumber || "N/A"}</TableCell>
                   <TableCell className="px-4 py-3 font-medium">
                     {incentive.name || "N/A"}
                   </TableCell>

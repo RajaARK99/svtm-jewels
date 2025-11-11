@@ -23,6 +23,7 @@ const convertingIncentiveSchema = z.object({
   amount: z.number(),
   date: z.date(),
   employeeId: z.string(),
+  employeeNumber: z.number().nullish(),
 });
 
 export type ConvertingIncentive = z.infer<typeof convertingIncentiveSchema>;
@@ -248,6 +249,7 @@ const getConvertingIncentives = protectedProcedure
           typeName: convertingType.name,
           typeId: convertingType.id,
           employeeId: employee.id,
+          employeeNumber: employee.employeeId,
         })
         .from(convertingIncentives)
         .leftJoin(employee, eq(convertingIncentives.employeeId, employee.id))
@@ -280,6 +282,7 @@ const getConvertingIncentives = protectedProcedure
         amount: record.amount,
         date: record.date,
         employeeId: record.employeeId ?? "",
+        employeeNumber: record.employeeNumber ?? null,
       }));
 
       return {
