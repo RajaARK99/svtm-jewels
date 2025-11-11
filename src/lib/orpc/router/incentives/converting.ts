@@ -1,5 +1,6 @@
 import { ORPCError } from "@orpc/server";
-import { and, count, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import * as XLSX from "xlsx";
 import z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/schema/auth";
@@ -153,18 +154,30 @@ const getConvertingIncentives = protectedProcedure
       // Date range filter
       if (filter?.date?.startDate && filter?.date?.endDate) {
         filterConditions.push(
-          gte(convertingIncentives.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
+          gte(
+            convertingIncentives.date,
+            new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0)),
+          ),
         );
         filterConditions.push(
-          lte(convertingIncentives.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
+          lte(
+            convertingIncentives.date,
+            new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999)),
+          ),
         );
       } else if (filter?.date?.startDate) {
         filterConditions.push(
-          gte(convertingIncentives.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
+          gte(
+            convertingIncentives.date,
+            new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0)),
+          ),
         );
       } else if (filter?.date?.endDate) {
         filterConditions.push(
-          lte(convertingIncentives.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
+          lte(
+            convertingIncentives.date,
+            new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999)),
+          ),
         );
       }
 
@@ -376,7 +389,156 @@ const updateConvertingIncentive = protectedProcedure
       });
     }
   });
+const getExcelFile = protectedProcedure
+  .route({
+    path: "/excel",
+    method: "GET",
+    summary: "Get excel file",
+    description: "Get excel file",
+  })
+  .input(
+    z
+      .object({
+        filter: z
+          .object({
+            date: z
+              .object({
+                startDate: z.iso.date(),
+                endDate: z.iso.date(),
+              })
+              .nullish(),
+          })
+          .nullish(),
+      })
+      .nullish(),
+  )
+  .output(
+    z
+      .object({
+        success: z.boolean(),
+        message: z.string(),
+        data: z.string(),
+      })
+      .nullish(),
+  )
+  .handler(async ({ input }) => {
+    try {
+      // Calculate date range
+      let startDate: Date;
+      let endDate: Date;
 
+      if (input?.filter?.date?.startDate && input?.filter?.date?.endDate) {
+        startDate = new Date(input.filter.date.startDate);
+        endDate = new Date(input.filter.date.endDate);
+      } else {
+        // Use current month if no dates provided
+        const now = new Date();
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      }
+
+      // Set time boundaries
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      // Query converting incentives grouped by employee with sum of amounts
+      const records = await db
+        .select({
+          employeeId: employee.id,
+          employeeNumber: employee.employeeId,
+          employeeName: user.name,
+          totalAmount: sql<number>`COALESCE(SUM(${convertingIncentives.amount}), 0)`,
+        })
+        .from(convertingIncentives)
+        .innerJoin(employee, eq(convertingIncentives.employeeId, employee.id))
+        .innerJoin(user, eq(employee.userId, user.id))
+        .where(
+          and(
+            gte(convertingIncentives.date, startDate),
+            lte(convertingIncentives.date, endDate),
+          ),
+        )
+        .groupBy(employee.id, employee.employeeId, user.name);
+
+      if (records.length === 0) {
+        throw new ORPCError("NOT_FOUND", {
+          data: {
+            success: false,
+            message: "No converting incentive records found",
+          },
+        });
+      }
+
+      // Format date range for display
+      const formatDate = (date: Date) => {
+        const day = date.getDate();
+        const month = date.toLocaleString("default", { month: "short" });
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
+      };
+
+      const dateRangeStr = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+
+      // Prepare data for Excel
+      const excelData: (string | number)[][] = [
+        [`Converting Incentive ${dateRangeStr}`], // First row heading
+        ["Employee Number", "Employee Name", "Amount"], // Second row headings
+      ];
+
+      // Add data rows
+      records.forEach((record) => {
+        excelData.push([
+          record.employeeNumber ?? "",
+          record.employeeName ?? "Unknown",
+          Number(record.totalAmount) || 0,
+        ]);
+      });
+
+      // Create worksheet from data
+      const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+
+      // Merge cells for the first row heading
+      worksheet["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }, // Merge first row across 3 columns
+      ];
+
+      // Set column widths
+      worksheet["!cols"] = [
+        { wch: 20 }, // Employee Number
+        { wch: 30 }, // Employee Name
+        { wch: 15 }, // Amount
+      ];
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, `${dateRangeStr}`);
+
+      // Convert workbook to buffer
+      const excelBuffer = XLSX.write(workbook, {
+        type: "buffer",
+        bookType: "xlsx",
+      });
+
+      // Convert buffer to base64 string
+      const base64String = Buffer.from(excelBuffer).toString("base64");
+
+      return {
+        success: true,
+        message: "Excel file fetched successfully",
+        data: base64String,
+      };
+    } catch (error) {
+      throw new ORPCError("BAD_REQUEST", {
+        data: {
+          success: false,
+          message:
+            error instanceof Error ? error.message : "Failed to get excel file",
+        },
+      });
+    }
+  });
 const convertingIncentiveRouter = protectedProcedure
   .prefix("/converting")
   .tag("Converting Incentive")
@@ -384,6 +546,7 @@ const convertingIncentiveRouter = protectedProcedure
     createConvertingIncentive,
     getConvertingIncentives,
     updateConvertingIncentive,
+    getExcelFile,
   });
 
 export { convertingIncentiveRouter };
