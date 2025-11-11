@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import z from "zod";
 import { db } from "@/db";
 import { user } from "@/db/schema/auth";
@@ -481,47 +481,45 @@ const getExcelFile = protectedProcedure
 
       const dateRangeStr = `${formatDate(startDate)} - ${formatDate(endDate)}`;
 
-      // Create workbook and worksheet
-      const workbook = XLSX.utils.book_new();
+      // Sanitize worksheet name (Excel has 31 char limit and restricts certain characters)
+      const sanitizeSheetName = (name: string) => {
+        return name.replace(/[\\/:*?[\]]/g, "").substring(0, 31) || "Sheet1";
+      };
 
-      // Prepare data for Excel
-      const excelData: (string | number)[][] = [
-        [`Converting Incentive ${dateRangeStr}`], // First row heading
-        ["Employee Number", "Employee Name", "Amount"], // Second row headings
-      ];
+      // Create workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet(sanitizeSheetName(dateRangeStr));
+
+      // Add title row and merge cells
+      worksheet.mergeCells(1, 1, 1, 3);
+      const titleCell = worksheet.getCell(1, 1);
+      titleCell.value = `Converting Incentive ${dateRangeStr}`;
+      titleCell.font = { bold: true, size: 14 };
+      titleCell.alignment = { horizontal: "center", vertical: "middle" };
+
+      // Add header row
+      const headerRow = worksheet.getRow(2);
+      headerRow.values = ["Employee Number", "Employee Name", "Amount"];
+      headerRow.font = { bold: true };
+      headerRow.alignment = { horizontal: "center", vertical: "middle" };
 
       // Add data rows
-      records.forEach((record) => {
-        excelData.push([
+      records.forEach((record, index) => {
+        const row = worksheet.getRow(index + 3);
+        row.values = [
           record.employeeNumber ?? "",
           record.employeeName ?? "Unknown",
           Number(record.totalAmount) || 0,
-        ]);
+        ];
       });
-
-      // Create worksheet from data
-      const worksheet = XLSX.utils.aoa_to_sheet(excelData);
-
-      // Merge cells for the first row heading
-      worksheet["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }, // Merge first row across 3 columns
-      ];
 
       // Set column widths
-      worksheet["!cols"] = [
-        { wch: 20 }, // Employee Number
-        { wch: 30 }, // Employee Name
-        { wch: 15 }, // Amount
-      ];
-
-      // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, `${dateRangeStr}`);
+      worksheet.getColumn(1).width = 20; // Employee Number
+      worksheet.getColumn(2).width = 30; // Employee Name
+      worksheet.getColumn(3).width = 15; // Amount
 
       // Convert workbook to buffer
-      const excelBuffer = XLSX.write(workbook, {
-        type: "buffer",
-        bookType: "xlsx",
-      });
+      const excelBuffer = await workbook.xlsx.writeBuffer();
 
       // Convert buffer to base64 string
       const base64String = Buffer.from(excelBuffer).toString("base64");
