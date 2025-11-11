@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDownIcon, PencilIcon, Upload, XIcon } from "lucide-react";
+import dayjs from "dayjs";
+import {
+  ChevronDownIcon,
+  Loader2Icon,
+  PencilIcon,
+  Upload,
+  XIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import UpdateAttendanceDialog from "@/components/attendance/updateAttendance";
@@ -39,7 +46,6 @@ import {
 import { api } from "@/lib/orpc/client";
 import type { Attendance } from "@/lib/orpc/router/attendance";
 import { formatDate } from "@/lib/utils";
-import dayjs from "dayjs";
 
 export const Route = createFileRoute("/_private/settings/attendance")({
   component: RouteComponent,
@@ -57,12 +63,17 @@ function RouteComponent() {
 
   const [filters, setFilters] = useState<{
     date?: {
-      startDate?: string;
-      endDate?: string;
+      startDate: string;
+      endDate: string;
     };
     employeeIds?: string[];
     attendanceIds?: string[];
-  }>({});
+  }>({
+    date: {
+      startDate: dayjs().startOf("month").format("YYYY-MM-DD"),
+      endDate: dayjs().endOf("month").format("YYYY-MM-DD"),
+    },
+  });
 
   // Fetch options for filters
   const { data: optionsData } = useQuery(
@@ -106,6 +117,52 @@ function RouteComponent() {
     }),
   );
 
+  // Excel export mutation
+  const { mutate: exportExcel, isPending: isExporting } = useMutation(
+    api.attendanceRouter.getExcelFile.mutationOptions({
+      onSuccess: (data) => {
+        if (data?.data) {
+          // Decode base64 string to binary data
+          const binaryString = atob(data.data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+
+          const blob = new Blob(
+            [bytes],
+            {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+          );
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          // Generate filename based on date range or use default
+          const dateRange =
+            filters?.date?.startDate && filters?.date?.endDate
+              ? `${filters.date.startDate}_to_${filters.date.endDate}`
+              : new Date().toISOString().split("T")[0];
+          a.download = `attendance_${dateRange}.xlsx`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          toast.success("Excel file downloaded successfully");
+        } else {
+          toast.error(data?.message ?? "Failed to export excel");
+        }
+      },
+      onError: (error: any) => {
+        console.log({ error });
+        toast.error(
+          error?.data?.message ??
+            error?.message ??
+            "Failed to export excel",
+        );
+      },
+    }),
+  );
+
+  console.log({ data });
   // Update attendance mutation
   const updateMutation = useMutation(
     api.attendanceRouter.updateAttendance.mutationOptions({
@@ -169,7 +226,7 @@ function RouteComponent() {
 
                   <ChevronDownIcon />
                 </Button>{" "}
-                {filters.date?.startDate && filters.date.endDate ? (
+                {/* {filters.date?.startDate && filters.date.endDate ? (
                   <XIcon
                     onClick={() => {
                       setDateOpen(false);
@@ -180,7 +237,7 @@ function RouteComponent() {
                     }}
                     className="-translate-y-1/2 absolute top-1/2 right-10 size-4 cursor-pointer"
                   />
-                ) : null}
+                ) : null} */}
               </div>
             </PopoverTrigger>
             <PopoverContent
@@ -203,8 +260,10 @@ function RouteComponent() {
                     setFilters({
                       ...filters,
                       date: {
-                        startDate: dayjs(date?.from).format("YYYY-MM-DD") ?? undefined,
-                        endDate: dayjs(date?.to).format("YYYY-MM-DD") ?? undefined,
+                        startDate:
+                          dayjs(date?.from).format("YYYY-MM-DD") ?? undefined,
+                        endDate:
+                          dayjs(date?.to).format("YYYY-MM-DD") ?? undefined,
                       },
                     });
                   }
@@ -263,6 +322,19 @@ function RouteComponent() {
             ))}
           </SelectContent>
         </Select>
+        <Button
+          onClick={() =>
+            exportExcel({
+              filter: Object.keys(filters).length > 0 ? filters : undefined,
+            })
+          }
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <Loader2Icon className="mr-2 size-4 animate-spin" />
+          ) : null}
+          Export Excel
+        </Button>
       </div>
 
       {/* Table */}
@@ -270,6 +342,7 @@ function RouteComponent() {
         <Table className="w-full min-w-[800px]">
           <TableHeader>
             <TableRow>
+              <TableHead className="px-4 py-3">ID</TableHead>
               <TableHead className="px-4 py-3">Employee</TableHead>
               <TableHead className="px-4 py-3">Email</TableHead>
               <TableHead className="px-4 py-3">Date</TableHead>
@@ -296,6 +369,9 @@ function RouteComponent() {
             ) : (
               data.data.map((attendance) => (
                 <TableRow key={attendance.id}>
+                  <TableCell className="px-4 py-3">
+                    {attendance.employee?.employeeId}
+                  </TableCell>
                   <TableCell className="px-4 py-3 font-medium">
                     {attendance.employee?.user?.name || "N/A"}
                   </TableCell>

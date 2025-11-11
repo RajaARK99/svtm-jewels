@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { PencilIcon, SearchIcon, TrashIcon } from "lucide-react";
+import {
+  Loader2Icon,
+  PencilIcon,
+  SearchIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import CreateEmployeeDialog from "@/components/employees/createEmployee";
@@ -122,6 +127,46 @@ function RouteComponent() {
       input: {
         filter: Object.keys(filters).length > 0 ? filters : undefined,
         pagination: { page, limit },
+      },
+    }),
+  );
+
+  // Excel export mutation
+  const { mutate: exportExcel, isPending: isExporting } = useMutation(
+    api.employeeRouter.getExcelFile.mutationOptions({
+      onSuccess: (data) => {
+        if (data?.data) {
+          // Decode base64 string to binary data
+          const binaryString = atob(data.data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+
+          const blob = new Blob(
+            [bytes],
+            {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+          );
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `employees_${new Date().toISOString().split("T")[0]}.xlsx`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          toast.success("Excel file downloaded successfully");
+        } else {
+          toast.error(data?.message ?? "Failed to export excel");
+        }
+      },
+      onError: (error: any) => {
+        console.log({ error });
+        toast.error(
+          error?.data?.message ??
+            error?.message ??
+            "Failed to export excel",
+        );
       },
     }),
   );
@@ -334,6 +379,19 @@ function RouteComponent() {
             ))}
           </SelectContent>
         </Select>
+        <Button
+          onClick={() =>
+            exportExcel({
+              filter: Object.keys(filters).length > 0 ? filters : undefined,
+            })
+          }
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <Loader2Icon className="mr-2 size-4 animate-spin" />
+          ) : null}
+          Export Excel
+        </Button>
       </div>
 
       {/* Table */}
@@ -341,7 +399,7 @@ function RouteComponent() {
         <Table className="w-full min-w-[1200px]">
           <TableHeader>
             <TableRow>
-              <TableHead className="px-4 py-3">Employee No.</TableHead>
+              <TableHead className="px-4 py-3">ID</TableHead>
               <TableHead className="max-w-[200px] px-4 py-3">User</TableHead>
               <TableHead className="px-4 py-3">Email</TableHead>
               <TableHead className="px-4 py-3">Job Title</TableHead>

@@ -62,12 +62,7 @@ function RouteComponent() {
     };
     employeeIds?: string[];
     typeIds?: string[];
-  }>({
-    date:{
-      startDate: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
-      endDate: dayjs().format('YYYY-MM-DD'),
-    }
-  });
+  }>({});
 
   // Fetch options for filters
   const { data: optionsData } = useQuery(
@@ -83,6 +78,40 @@ function RouteComponent() {
     api.employeeRouter.getEmployee.queryOptions({
       input: {
         pagination: { page: 1, limit: 1000 },
+      },
+    }),
+  );
+
+  const { mutate } = useMutation(
+    api.incentivesRouter.convertingIncentiveRouter.getExcelFile.mutationOptions({
+      onSuccess: (data) => {
+        if(data?.data){
+        // Decode base64 string to binary data
+        const binaryString = atob(data.data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        // Generate filename based on date range or use default
+        const dateRange = filters?.date?.startDate && filters?.date?.endDate
+          ? `${filters.date.startDate}_to_${filters.date.endDate}`
+          : new Date().toISOString().split('T')[0];
+        a.download = `converting_incentive_${dateRange}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        toast.success("Excel file downloaded successfully");
+        } else {
+          toast.error(data?.message ?? "Failed to export excel");
+        }
+      },
+      onError: (error) => {
+        console.log({ error });
+        toast.error(error.message ?? "Failed to export excel");
       },
     }),
   );
@@ -170,38 +199,7 @@ function RouteComponent() {
   const convertingTypeOptions =
     optionsData?.find((opt) => opt.type === "convertingType")?.data ?? [];
   const employees = employeesData?.data ?? [];
- const { mutate } = useMutation(
-    api.incentivesRouter.convertingIncentiveRouter.getExcelFile.mutationOptions({
-      onSuccess: (data) => {
-        if(data?.data){
-        // Decode base64 string to binary data
-        const binaryString = atob(data.data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        // Generate filename based on date range or use default
-        const dateRange = filters?.date?.startDate && filters?.date?.endDate
-          ? `${filters.date.startDate}_to_${filters.date.endDate}`
-          : new Date().toISOString().split('T')[0];
-        a.download = `converting_incentive_${dateRange}.xlsx`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        toast.success("Excel file downloaded successfully");
-        } else {
-          toast.error(data?.message ?? "Failed to export excel");
-        }
-      },
-      onError: (error) => {
-        console.log({ error });
-        toast.error(error.message ?? "Failed to export excel");
-      },
-    }),
-  );
+
   return (
     <div className="max-w-full space-y-8 overflow-x-hidden px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

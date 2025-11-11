@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ChevronDownIcon,
   EyeIcon,
+  Loader2Icon,
   PencilIcon,
   PlusIcon,
   XIcon,
@@ -89,6 +90,51 @@ function RouteComponent() {
   const { data, isLoading } = useQuery(
     api.incentivesRouter.saleIncentiveRoute.getSalesIncentives.queryOptions({
       input: queryInput as never,
+    }),
+  );
+
+  // Excel export mutation
+  const { mutate: exportExcel, isPending: isExporting } = useMutation(
+    api.incentivesRouter.saleIncentiveRoute.getExcelFile.mutationOptions({
+      onSuccess: (data) => {
+        if (data?.data) {
+          // Decode base64 string to binary data
+          const binaryString = atob(data.data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+
+          const blob = new Blob(
+            [bytes],
+            {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+          );
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          // Generate filename based on date range or use default
+          const dateRange =
+            filters?.date?.startDate && filters?.date?.endDate
+              ? `${filters.date.startDate}_to_${filters.date.endDate}`
+              : new Date().toISOString().split("T")[0];
+          a.download = `sales_incentive_${dateRange}.xlsx`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          toast.success("Excel file downloaded successfully");
+        } else {
+          toast.error(data?.message ?? "Failed to export excel");
+        }
+      },
+      onError: (error: any) => {
+        console.log({ error });
+        toast.error(
+          error?.data?.message ??
+            error?.message ??
+            "Failed to export excel",
+        );
+      },
     }),
   );
 
@@ -231,6 +277,27 @@ function RouteComponent() {
             </PopoverContent>
           </Popover>
         </div>
+        <Button
+          onClick={() =>
+            exportExcel({
+              filter: {
+                date:
+                  filters?.date?.startDate && filters?.date?.endDate
+                    ? {
+                        startDate: filters.date.startDate,
+                        endDate: filters.date.endDate,
+                      }
+                    : undefined,
+              },
+            })
+          }
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <Loader2Icon className="mr-2 size-4 animate-spin" />
+          ) : null}
+          Export Excel
+        </Button>
       </div>
 
       {/* Table */}

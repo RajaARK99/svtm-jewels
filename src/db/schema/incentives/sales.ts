@@ -4,7 +4,6 @@ import { integer, pgTable, real, text, timestamp } from "drizzle-orm/pg-core";
 export const salesIncentives = pgTable("sales_incentives", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   date: timestamp("date").notNull(),
-
   gold4PerGmAmount: real("gold_4_per_gm_amount").notNull(),
   goldCoin1PerGmAmount: real("gold_coin_1_per_gm_amount").notNull(),
   diamond500PerCtAmount: real("diamond_500_per_ct_amount").notNull(),
@@ -33,7 +32,6 @@ export const salesIncentives = pgTable("sales_incentives", {
   totalStaffAbsentIn6Percent: integer(
     "total_staff_absent_in_6_percent",
   ).notNull(),
-
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

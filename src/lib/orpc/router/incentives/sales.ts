@@ -1,5 +1,7 @@
+import { Buffer } from "node:buffer";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import ExcelJS from "exceljs";
 import z from "zod";
 import { db } from "@/db";
 import {
@@ -557,18 +559,30 @@ const getSalesIncentives = protectedProcedure
       // Date range filter
       if (filter?.date?.startDate && filter?.date?.endDate) {
         filterConditions.push(
-          gte(salesIncentives.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
+          gte(
+            salesIncentives.date,
+            new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0)),
+          ),
         );
         filterConditions.push(
-          lte(salesIncentives.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
+          lte(
+            salesIncentives.date,
+            new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999)),
+          ),
         );
       } else if (filter?.date?.startDate) {
         filterConditions.push(
-          gte(salesIncentives.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
+          gte(
+            salesIncentives.date,
+            new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0)),
+          ),
         );
       } else if (filter?.date?.endDate) {
         filterConditions.push(
-          lte(salesIncentives.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
+          lte(
+            salesIncentives.date,
+            new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999)),
+          ),
         );
       }
 
@@ -678,6 +692,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
                 }),
               )
               .optional(),
+            employeeId: z.number(),
           }),
         ),
         total: z.number(),
@@ -777,6 +792,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
             email: user.email,
             salesIncentiveTypeId: employee.salesIncentiveTypeId,
             salesIncentiveTypeName: salesIncentiveType.name,
+            employeeId: employee.employeeId,
           })
           .from(employee)
           .innerJoin(user, eq(employee.userId, user.id))
@@ -796,7 +812,8 @@ const getEmployeesForSalesIncentive = protectedProcedure
 
         // Fetch attendance types for all employees
         const employeeIds = records.map((r) => r.id);
-        const attendanceMap = await fetchAttendanceTypesForEmployees(employeeIds);
+        const attendanceMap =
+          await fetchAttendanceTypesForEmployees(employeeIds);
 
         return {
           data: records.map((record) => ({
@@ -806,6 +823,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
             salesIncentiveTypeId: record.salesIncentiveTypeId,
             salesIncentiveTypeName: record.salesIncentiveTypeName,
             attendanceTypes: attendanceMap.get(record.id) ?? [],
+            employeeId: record.employeeId,
           })),
           total,
           page: pagination?.page ?? 1,
@@ -831,6 +849,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
         const employeeQuery = db
           .select({
             id: employee.id,
+            employeeId: employee.employeeId,
             name: user.name,
             email: user.email,
             salesIncentiveTypeId: employee.salesIncentiveTypeId,
@@ -909,7 +928,8 @@ const getEmployeesForSalesIncentive = protectedProcedure
 
         // Fetch attendance types for all employees
         const employeeIds = records.map((r) => r.id);
-        const attendanceMap = await fetchAttendanceTypesForEmployees(employeeIds);
+        const attendanceMap =
+          await fetchAttendanceTypesForEmployees(employeeIds);
 
         return {
           data: records.map((record) => ({
@@ -919,6 +939,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
             salesIncentiveTypeId: record.salesIncentiveTypeId,
             salesIncentiveTypeName: record.salesIncentiveTypeName,
             attendanceTypes: attendanceMap.get(record.id) ?? [],
+            employeeId: record.employeeId,
           })),
           total,
           page: pagination?.page ?? 1,
@@ -934,6 +955,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
           email: user.email,
           salesIncentiveTypeId: employee.salesIncentiveTypeId,
           salesIncentiveTypeName: salesIncentiveType.name,
+          employeeId: employee.employeeId,
         })
         .from(employee)
         .innerJoin(user, eq(employee.userId, user.id))
@@ -973,6 +995,7 @@ const getEmployeesForSalesIncentive = protectedProcedure
           salesIncentiveTypeId: record.salesIncentiveTypeId,
           salesIncentiveTypeName: record.salesIncentiveTypeName,
           attendanceTypes: attendanceMap.get(record.id) ?? [],
+          employeeId: record.employeeId,
         })),
         total,
         page: pagination?.page ?? 1,
@@ -991,6 +1014,297 @@ const getEmployeesForSalesIncentive = protectedProcedure
     }
   });
 
+const getExcelFile = protectedProcedure
+  .route({
+    path: "/excel",
+    method: "GET",
+    summary: "Get excel file",
+    description: "Get excel file",
+  })
+  .input(
+    z
+      .object({
+        filter: z
+          .object({
+            date: z
+              .object({
+                startDate: z.iso.date(),
+                endDate: z.iso.date(),
+              })
+              .nullish(),
+          })
+          .nullish(),
+      })
+      .nullish(),
+  )
+  .output(
+    z
+      .object({
+        success: z.boolean(),
+        message: z.string(),
+        data: z.string(),
+      })
+      .nullish(),
+  )
+  .handler(async ({ input }) => {
+    try {
+      // Calculate date range
+      let startDate: Date;
+      let endDate: Date;
+
+      if (input?.filter?.date?.startDate && input?.filter?.date?.endDate) {
+        startDate = new Date(input.filter.date.startDate);
+        endDate = new Date(input.filter.date.endDate);
+      } else {
+        // Use current month if no dates provided
+        const now = new Date();
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      }
+
+      // Set time boundaries
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      // Get all sales incentives in the date range
+      const salesIncentiveRecords = await db
+        .select()
+        .from(salesIncentives)
+        .where(
+          and(
+            gte(salesIncentives.date, startDate),
+            lte(salesIncentives.date, endDate),
+          ),
+        )
+        .orderBy(salesIncentives.date);
+
+      if (salesIncentiveRecords.length === 0) {
+        throw new ORPCError("NOT_FOUND", {
+          data: {
+            success: false,
+            message:
+              "No sales incentive records found for the selected date range",
+          },
+        });
+      }
+
+      // Fetch sales incentive types
+      const [salesIncentiveType94, salesIncentiveType6] = await Promise.all([
+        db.query.salesIncentiveType.findFirst({
+          where: eq(salesIncentiveType.name, "94% Incentive"),
+        }),
+        db.query.salesIncentiveType.findFirst({
+          where: eq(salesIncentiveType.name, "6% Incentive"),
+        }),
+      ]);
+
+      if (!salesIncentiveType94 || !salesIncentiveType6) {
+        throw new ORPCError("BAD_REQUEST", {
+          data: {
+            success: false,
+            message: "Sales incentive types not found",
+          },
+        });
+      }
+
+      // Map to store employee totals
+      const employeeTotals = new Map<
+        string,
+        { employeeNumber: number; employeeName: string; totalAmount: number }
+      >();
+
+      // Process each sales incentive record
+      for (const salesIncentive of salesIncentiveRecords) {
+        const targetDate = new Date(salesIncentive.date);
+        targetDate.setHours(0, 0, 0, 0);
+
+        // Calculate per-employee amounts for 94% and 6% incentive types
+        const amountPerEmployee94 =
+          salesIncentive.totalStaffPresentIn94Percent > 0
+            ? salesIncentive.totalIncentive94Percent /
+              salesIncentive.totalStaffPresentIn94Percent
+            : 0;
+        const amountPerEmployee6 =
+          salesIncentive.totalStaffPresentIn6Percent > 0
+            ? salesIncentive.totalIncentive6Percent /
+              salesIncentive.totalStaffPresentIn6Percent
+            : 0;
+
+        // Get employees with 94% incentive type who were present
+        const employees94 = await db
+          .select({
+            employeeId: employee.id,
+            employeeNumber: employee.employeeId,
+            employeeName: user.name,
+          })
+          .from(employee)
+          .innerJoin(user, eq(employee.userId, user.id))
+          .innerJoin(
+            employeeAttendance,
+            and(
+              eq(employee.id, employeeAttendance.employeeId),
+              sql`${employeeAttendance.date}::date = ${targetDate}::date`,
+            ),
+          )
+          .innerJoin(
+            employeeAttendanceType,
+            eq(
+              employeeAttendance.id,
+              employeeAttendanceType.employeeAttendanceId,
+            ),
+          )
+          .innerJoin(
+            attendance,
+            and(
+              eq(employeeAttendanceType.attendanceId, attendance.id),
+              inArray(attendance.code, presentAttendanceCodes),
+            ),
+          )
+          .where(eq(employee.salesIncentiveTypeId, salesIncentiveType94.id));
+
+        // Get employees with 6% incentive type who were present
+        const employees6 = await db
+          .select({
+            employeeId: employee.id,
+            employeeNumber: employee.employeeId,
+            employeeName: user.name,
+          })
+          .from(employee)
+          .innerJoin(user, eq(employee.userId, user.id))
+          .innerJoin(
+            employeeAttendance,
+            and(
+              eq(employee.id, employeeAttendance.employeeId),
+              sql`${employeeAttendance.date}::date = ${targetDate}::date`,
+            ),
+          )
+          .innerJoin(
+            employeeAttendanceType,
+            eq(
+              employeeAttendance.id,
+              employeeAttendanceType.employeeAttendanceId,
+            ),
+          )
+          .innerJoin(
+            attendance,
+            and(
+              eq(employeeAttendanceType.attendanceId, attendance.id),
+              inArray(attendance.code, presentAttendanceCodes),
+            ),
+          )
+          .where(eq(employee.salesIncentiveTypeId, salesIncentiveType6.id));
+
+        // Add amounts to employee totals
+        employees94.forEach((emp) => {
+          const existing = employeeTotals.get(emp.employeeId);
+          if (existing) {
+            existing.totalAmount += amountPerEmployee94;
+          } else {
+            employeeTotals.set(emp.employeeId, {
+              employeeNumber: emp.employeeNumber,
+              employeeName: emp.employeeName || "Unknown",
+              totalAmount: amountPerEmployee94,
+            });
+          }
+        });
+
+        employees6.forEach((emp) => {
+          const existing = employeeTotals.get(emp.employeeId);
+          if (existing) {
+            existing.totalAmount += amountPerEmployee6;
+          } else {
+            employeeTotals.set(emp.employeeId, {
+              employeeNumber: emp.employeeNumber,
+              employeeName: emp.employeeName || "Unknown",
+              totalAmount: amountPerEmployee6,
+            });
+          }
+        });
+      }
+
+      if (employeeTotals.size === 0) {
+        throw new ORPCError("NOT_FOUND", {
+          data: {
+            success: false,
+            message: "No employee sales incentive records found",
+          },
+        });
+      }
+
+      // Format date range for display
+      const formatDate = (date: Date) => {
+        const day = date.getDate();
+        const month = date.toLocaleString("default", { month: "short" });
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
+      };
+
+      const dateRangeStr = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+
+      // Sanitize worksheet name (Excel has 31 char limit and restricts certain characters)
+      const sanitizeSheetName = (name: string) => {
+        return name.replace(/[\\/:*?[\]]/g, "").substring(0, 31) || "Sheet1";
+      };
+
+      // Create workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet(sanitizeSheetName(dateRangeStr));
+
+      // Add title row and merge cells
+      worksheet.mergeCells(1, 1, 1, 3);
+      const titleCell = worksheet.getCell(1, 1);
+      titleCell.value = `Sales Incentive ${dateRangeStr}`;
+      titleCell.font = { bold: true, size: 14 };
+      titleCell.alignment = { horizontal: "center", vertical: "middle" };
+
+      // Add header row
+      const headerRow = worksheet.getRow(2);
+      headerRow.values = ["Employee Number", "Employee Name", "Amount"];
+      headerRow.font = { bold: true };
+      headerRow.alignment = { horizontal: "center", vertical: "middle" };
+
+      // Convert map to array and sort by employee number
+      const records = Array.from(employeeTotals.values()).sort(
+        (a, b) => a.employeeNumber - b.employeeNumber,
+      );
+
+      // Add data rows
+      records.forEach((record, index) => {
+        const row = worksheet.getRow(index + 3);
+        row.values = [
+          record.employeeNumber,
+          record.employeeName,
+          Number(record.totalAmount.toFixed(2)) || 0,
+        ];
+      });
+
+      // Set column widths
+      worksheet.getColumn(1).width = 20; // Employee Number
+      worksheet.getColumn(2).width = 30; // Employee Name
+      worksheet.getColumn(3).width = 15; // Amount
+
+      // Convert workbook to buffer
+      const excelBuffer = await workbook.xlsx.writeBuffer();
+
+      // Convert buffer to base64 string
+      const base64String = Buffer.from(excelBuffer).toString("base64");
+
+      return {
+        success: true,
+        message: "Excel file fetched successfully",
+        data: base64String,
+      };
+    } catch (error) {
+      throw new ORPCError("BAD_REQUEST", {
+        data: {
+          success: false,
+          message:
+            error instanceof Error ? error.message : "Failed to get excel file",
+        },
+      });
+    }
+  });
+
 const saleIncentiveRoute = protectedProcedure
   .prefix("/sales")
   .tag("Sales Incentive")
@@ -999,6 +1313,7 @@ const saleIncentiveRoute = protectedProcedure
     updateSalesIncentive,
     getSalesIncentives,
     getEmployeesForSalesIncentive,
+    getExcelFile,
   });
 
 export { saleIncentiveRoute };

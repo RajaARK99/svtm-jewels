@@ -1,32 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import dayjs from "dayjs";
 import {
   CalendarIcon,
   ChevronDownIcon,
-  CoinsIcon,
   Loader2Icon,
   TrendingUpIcon,
-  UserCheckIcon,
   UsersIcon,
+  UserCheckIcon,
+  CoinsIcon,
 } from "lucide-react";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 import {
-  Bar,
   BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
+  Bar,
   PieChart,
-  ResponsiveContainer,
-  Tooltip,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Card,
   CardContent,
@@ -34,14 +38,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/orpc/client";
 import { formatDate } from "@/lib/utils";
+import dayjs from "dayjs";
 
 export const Route = createFileRoute("/_private/")({
   component: App,
@@ -76,8 +76,7 @@ function App() {
 
   const { data, isLoading, error } = useQuery(
     api.dashboardRouter.getDashboardStats.queryOptions({
-      input:
-        queryInput.startDate && queryInput.endDate ? queryInput : undefined,
+      input: queryInput.startDate && queryInput.endDate ? queryInput : undefined,
     }),
   );
 
@@ -96,21 +95,20 @@ function App() {
       ]
     : [];
 
-  const attendanceData =
-    data?.attendancePercentage !== null
-      ? [
-          {
-            name: "Present",
-            value: data?.attendancePercentage ?? 0,
-            fill: COLORS[2],
-          },
-          {
-            name: "Absent",
-            value: 100 - (data?.attendancePercentage ?? 0),
-            fill: COLORS[3],
-          },
-        ]
-      : [];
+  const attendanceData = data?.attendancePercentage !== null
+    ? [
+        {
+          name: "Present",
+          value: data?.attendancePercentage ?? 0,
+          fill: COLORS[2],
+        },
+        {
+          name: "Absent",
+          value: 100 - (data?.attendancePercentage ?? 0),
+          fill: COLORS[3],
+        },
+      ]
+    : [];
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -118,19 +116,16 @@ function App() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-bold text-3xl text-foreground tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Dashboard
             </h1>
-            <p className="mt-1 text-muted-foreground">
+            <p className="text-muted-foreground mt-1">
               Welcome to Sri Vasavi Jewels Management System
             </p>
           </div>
           <Popover>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-[300px] justify-start text-left font-normal"
-              >
+              <Button variant="outline" className="w-[300px] justify-start text-left font-normal">
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {dateRange?.from && dateRange?.to ? (
                   <>
@@ -158,18 +153,16 @@ function App() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="font-medium text-sm">Total Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
               <UsersIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Skeleton className="h-8 w-24" />
               ) : (
-                <div className="font-bold text-2xl">
-                  {data?.usersCount ?? 0}
-                </div>
+                <div className="text-2xl font-bold">{data?.usersCount ?? 0}</div>
               )}
-              <p className="mt-1 text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground mt-1">
                 Registered users in the system
               </p>
             </CardContent>
@@ -177,20 +170,16 @@ function App() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="font-medium text-sm">
-                Total Employees
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
               <UserCheckIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Skeleton className="h-8 w-24" />
               ) : (
-                <div className="font-bold text-2xl">
-                  {data?.employeeCount ?? 0}
-                </div>
+                <div className="text-2xl font-bold">{data?.employeeCount ?? 0}</div>
               )}
-              <p className="mt-1 text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground mt-1">
                 Active employees
               </p>
             </CardContent>
@@ -198,20 +187,20 @@ function App() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="font-medium text-sm">Attendance</CardTitle>
+              <CardTitle className="text-sm font-medium">Attendance</CardTitle>
               <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Skeleton className="h-8 w-24" />
               ) : data && data.attendancePercentage !== null ? (
-                <div className="font-bold text-2xl">
+                <div className="text-2xl font-bold">
                   {data.attendancePercentage.toFixed(1)}%
                 </div>
               ) : (
-                <div className="font-bold text-2xl">N/A</div>
+                <div className="text-2xl font-bold">N/A</div>
               )}
-              <p className="mt-1 text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground mt-1">
                 {dateRange?.from && dateRange?.to
                   ? "Attendance percentage for selected period"
                   : "Select date range to view attendance"}
@@ -221,24 +210,18 @@ function App() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="font-medium text-sm">
-                Total Incentives
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Total Incentives</CardTitle>
               <CoinsIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Skeleton className="h-8 w-32" />
               ) : (
-                <div className="font-bold text-2xl">
-                  ₹
-                  {(
-                    (data?.totalConvertingIncentiveAmount ?? 0) +
-                    (data?.totalSalesIncentiveAmount ?? 0)
-                  ).toLocaleString("en-IN")}
+                <div className="text-2xl font-bold">
+                  ₹{((data?.totalConvertingIncentiveAmount ?? 0) + (data?.totalSalesIncentiveAmount ?? 0)).toLocaleString("en-IN")}
                 </div>
               )}
-              <p className="mt-1 text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground mt-1">
                 {dateRange?.from && dateRange?.to
                   ? "Total incentives for selected period"
                   : "All-time total incentives"}
@@ -290,7 +273,9 @@ function App() {
           <Card>
             <CardHeader>
               <CardTitle>Attendance Overview</CardTitle>
-              <CardDescription>Present vs Absent Percentage</CardDescription>
+              <CardDescription>
+                Present vs Absent Percentage
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -305,9 +290,7 @@ function App() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value }) =>
-                        `${name}: ${value.toFixed(1)}%`
-                      }
+                      label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
                       outerRadius={100}
                       fill="#8884d8"
                       dataKey="value"
@@ -346,11 +329,8 @@ function App() {
               {isLoading ? (
                 <Skeleton className="h-12 w-32" />
               ) : (
-                <div className="font-bold text-3xl">
-                  ₹
-                  {(data?.totalConvertingIncentiveAmount ?? 0).toLocaleString(
-                    "en-IN",
-                  )}
+                <div className="text-3xl font-bold">
+                  ₹{(data?.totalConvertingIncentiveAmount ?? 0).toLocaleString("en-IN")}
                 </div>
               )}
             </CardContent>
@@ -359,17 +339,16 @@ function App() {
           <Card>
             <CardHeader>
               <CardTitle>Sales Incentive</CardTitle>
-              <CardDescription>Total sales incentive amount</CardDescription>
+              <CardDescription>
+                Total sales incentive amount
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Skeleton className="h-12 w-32" />
               ) : (
-                <div className="font-bold text-3xl">
-                  ₹
-                  {(data?.totalSalesIncentiveAmount ?? 0).toLocaleString(
-                    "en-IN",
-                  )}
+                <div className="text-3xl font-bold">
+                  ₹{(data?.totalSalesIncentiveAmount ?? 0).toLocaleString("en-IN")}
                 </div>
               )}
             </CardContent>
@@ -382,7 +361,7 @@ function App() {
               <CardTitle className="text-destructive">Error</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-sm text-muted-foreground">
                 Failed to load dashboard data. Please try again.
               </p>
             </CardContent>

@@ -1,5 +1,7 @@
+import { Buffer } from "node:buffer";
 import { ORPCError } from "@orpc/server";
 import { and, count, eq, gte, inArray, lte } from "drizzle-orm";
+import ExcelJS from "exceljs";
 import z from "zod";
 import { db } from "@/db";
 import {
@@ -14,6 +16,7 @@ const attendanceSchema = employeeAttendanceSelectSchema.extend({
     .object({
       id: z.string(),
       userId: z.string(),
+      employeeId: z.number(),
       user: z
         .object({
           id: z.string(),
@@ -174,18 +177,30 @@ const getAttendance = protectedProcedure
       // Date range filter
       if (filter?.date?.startDate && filter?.date?.endDate) {
         filterConditions.push(
-          gte(employeeAttendance.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
+          gte(
+            employeeAttendance.date,
+            new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0)),
+          ),
         );
         filterConditions.push(
-          lte(employeeAttendance.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
+          lte(
+            employeeAttendance.date,
+            new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999)),
+          ),
         );
       } else if (filter?.date?.startDate) {
         filterConditions.push(
-          gte(employeeAttendance.date, new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0))),
+          gte(
+            employeeAttendance.date,
+            new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0)),
+          ),
         );
       } else if (filter?.date?.endDate) {
         filterConditions.push(
-          lte(employeeAttendance.date, new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999))),
+          lte(
+            employeeAttendance.date,
+            new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999)),
+          ),
         );
       }
 
@@ -207,6 +222,7 @@ const getAttendance = protectedProcedure
             columns: {
               id: true,
               userId: true,
+              employeeId: true,
             },
             with: {
               user: {
@@ -328,6 +344,231 @@ const updateAttendance = protectedProcedure
     }
   });
 
+const getExcelFile = protectedProcedure
+  .route({
+    path: "/excel",
+    method: "GET",
+    summary: "Get excel file",
+    description: "Get excel file for employee attendance",
+  })
+  .input(
+    z
+      .object({
+        filter: z
+          .object({
+            date: z
+              .object({
+                startDate: z.iso.date(),
+                endDate: z.iso.date(),
+              })
+              .nullish(),
+            employeeIds: z.string().array().optional(),
+            attendanceIds: z.string().array().optional(),
+          })
+          .nullish(),
+      })
+      .nullish(),
+  )
+  .output(
+    z
+      .object({
+        success: z.boolean(),
+        message: z.string(),
+        data: z.string(),
+      })
+      .nullish(),
+  )
+  .handler(async ({ input }) => {
+    try {
+      const filter = input?.filter;
+
+      // Build filter conditions
+      const filterConditions = [];
+
+      // Date range filter
+      if (filter?.date?.startDate && filter?.date?.endDate) {
+        filterConditions.push(
+          gte(
+            employeeAttendance.date,
+            new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0)),
+          ),
+        );
+        filterConditions.push(
+          lte(
+            employeeAttendance.date,
+            new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999)),
+          ),
+        );
+      } else if (filter?.date?.startDate) {
+        filterConditions.push(
+          gte(
+            employeeAttendance.date,
+            new Date(new Date(filter.date.startDate).setHours(0, 0, 0, 0)),
+          ),
+        );
+      } else if (filter?.date?.endDate) {
+        filterConditions.push(
+          lte(
+            employeeAttendance.date,
+            new Date(new Date(filter.date.endDate).setHours(23, 59, 59, 999)),
+          ),
+        );
+      } else {
+        // Use current month if no dates provided
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        filterConditions.push(gte(employeeAttendance.date, startDate));
+        filterConditions.push(
+          lte(
+            employeeAttendance.date,
+            new Date(endDate.setHours(23, 59, 59, 999)),
+          ),
+        );
+      }
+
+      // Employee IDs filter
+      if (filter?.employeeIds && filter.employeeIds.length > 0) {
+        filterConditions.push(
+          inArray(employeeAttendance.employeeId, filter.employeeIds),
+        );
+      }
+
+      const whereConditions =
+        filterConditions.length > 0 ? and(...filterConditions) : undefined;
+
+      // Get all attendance records with relations (no pagination for Excel export)
+      const attendanceRecords = await db.query.employeeAttendance.findMany({
+        where: whereConditions,
+        with: {
+          employee: {
+            columns: {
+              id: true,
+              userId: true,
+              employeeId: true,
+            },
+            with: {
+              user: {
+                columns: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          attendanceTypes: {
+            with: {
+              attendance: {
+                columns: {
+                  id: true,
+                  name: true,
+                  code: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: (employeeAttendance, { asc }) => [
+          asc(employeeAttendance.date),
+        ],
+      });
+
+      // Filter by attendanceIds if provided
+      let filteredRecords = attendanceRecords;
+      if (filter?.attendanceIds && filter.attendanceIds.length > 0) {
+        filteredRecords = attendanceRecords.filter((record) =>
+          record.attendanceTypes?.some((at) =>
+            filter.attendanceIds?.includes(at.attendanceId),
+          ),
+        );
+      }
+
+      if (filteredRecords.length === 0) {
+        throw new ORPCError("NOT_FOUND", {
+          data: {
+            success: false,
+            message: "No attendance records found",
+          },
+        });
+      }
+
+      // Format date helper
+      const formatDate = (date: Date) => {
+        const day = date.getDate();
+        const month = date.toLocaleString("default", { month: "short" });
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
+      };
+
+      // Create workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Attendance");
+
+      // Add header row
+      const headerRow = worksheet.getRow(1);
+      headerRow.values = [
+        "ID",
+        "Employee",
+        "Email",
+        "Date",
+        "Attendance Types",
+      ];
+      headerRow.font = { bold: true };
+      headerRow.alignment = { horizontal: "center", vertical: "middle" };
+
+      // Add data rows
+      filteredRecords.forEach((record, index) => {
+        const attendanceTypeNames =
+          record.attendanceTypes
+            ?.map((at) => at.attendance?.name || "N/A")
+            .join(", ") || "N/A";
+
+        const row = worksheet.getRow(index + 2);
+        row.values = [
+          record.employee?.employeeId ?? "",
+          record.employee?.user?.name?.toUpperCase() || "N/A",
+          record.employee?.user?.email || "N/A",
+          record.date
+            ? formatDate(
+                record.date instanceof Date
+                  ? record.date
+                  : new Date(record.date),
+              )
+            : "N/A",
+          attendanceTypeNames,
+        ];
+      });
+
+      // Set column widths
+      worksheet.getColumn(1).width = 10; // ID
+      worksheet.getColumn(2).width = 30; // Employee
+      worksheet.getColumn(3).width = 35; // Email
+      worksheet.getColumn(4).width = 18; // Date
+      worksheet.getColumn(5).width = 25; // Attendance Types
+
+      // Convert workbook to buffer
+      const excelBuffer = await workbook.xlsx.writeBuffer();
+
+      // Convert buffer to base64 string
+      const base64String = Buffer.from(excelBuffer).toString("base64");
+
+      return {
+        success: true,
+        message: "Excel file fetched successfully",
+        data: base64String,
+      };
+    } catch (error) {
+      throw new ORPCError("BAD_REQUEST", {
+        data: {
+          success: false,
+          message:
+            error instanceof Error ? error.message : "Failed to get excel file",
+        },
+      });
+    }
+  });
+
 const attendanceRouter = protectedProcedure
   .prefix("/attendance")
   .tag("Attendance")
@@ -335,6 +576,7 @@ const attendanceRouter = protectedProcedure
     createAttendance,
     getAttendance,
     updateAttendance,
+    getExcelFile,
   });
 
 export { attendanceRouter };

@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import ExcelJS from "exceljs";
 import { Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -116,13 +116,36 @@ const UploadAttendanceDialog = ({
     setIsProcessing(true);
     try {
       const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-        header: 1,
-        defval: "",
-      }) as (string | number)[][];
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(data);
+
+      if (workbook.worksheets.length === 0) {
+        toast.error("Excel file has no worksheets");
+        setIsProcessing(false);
+        return;
+      }
+
+      const worksheet = workbook.worksheets[0];
+
+      // Convert worksheet to array of arrays
+      const jsonData: (string | number)[][] = [];
+      worksheet.eachRow((row) => {
+        const rowData: (string | number)[] = [];
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          const value = cell.value;
+          if (value === null || value === undefined) {
+            rowData.push("");
+          } else if (typeof value === "object" && "text" in value) {
+            rowData.push(String(value.text));
+          } else if (typeof value === "object" && "result" in value) {
+            rowData.push(String(value.result));
+          } else {
+            rowData.push(String(value));
+          }
+        });
+        jsonData.push(rowData);
+      });
+
       console.log({ jsonData });
 
       if (jsonData.length < 2) {
