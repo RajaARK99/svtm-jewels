@@ -9,6 +9,7 @@ const config = defineConfig({
   plugins: [
     nitroV2Plugin({
       compatibilityDate: "latest",
+      
     }),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
