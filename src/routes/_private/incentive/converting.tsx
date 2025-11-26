@@ -110,7 +110,7 @@ function RouteComponent() {
         }
       },
       onError: (error) => {
-        console.log({ error });
+       
         toast.error(error.message ?? "Failed to export excel");
       },
     }),
@@ -158,7 +158,6 @@ function RouteComponent() {
           setCreateDialogOpen(false);
         },
         onError: (error) => {
-          console.log({ error });
           toast.error(error.message ?? "Failed to create converting incentive");
         },
       },
@@ -182,7 +181,6 @@ function RouteComponent() {
           setEditDialogOpen(false);
         },
         onError: (error) => {
-          console.log({ error });
           toast.error(error.message ?? "Failed to update converting incentive");
         },
       },

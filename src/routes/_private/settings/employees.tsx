@@ -161,7 +161,6 @@ function RouteComponent() {
         }
       },
       onError: (error: any) => {
-        console.log({ error });
         toast.error(
           error?.data?.message ??
             error?.message ??
@@ -203,7 +202,6 @@ function RouteComponent() {
         setSelectedEmployee(null);
       },
       onError: (error) => {
-        console.log({ error });
         toast(error.message ?? "Failed to update employee");
       },
     }),

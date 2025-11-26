@@ -67,7 +67,7 @@ const createEmployee = protectedProcedure
           data: newEmployee[0],
         };
       } catch (error) {
-        console.log({ error });
+        
         throw new ORPCError("BAD_REQUEST", {
           data: {
             success: false,
@@ -380,7 +380,7 @@ const updateEmployee = protectedProcedure
           data: updatedEmployee[0],
         };
       } catch (error) {
-        console.log({ error });
+      
         throw new ORPCError("BAD_REQUEST", {
           data: {
             success: false,
@@ -423,7 +423,7 @@ const deleteEmployee = protectedProcedure
         data: deletedEmployee[0],
       };
     } catch (error) {
-      console.log({ error });
+     
       throw new ORPCError("BAD_REQUEST", {
         data: {
           success: false,

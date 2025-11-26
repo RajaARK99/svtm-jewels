@@ -59,7 +59,6 @@ export const Route = createFileRoute("/_private/settings/users")({
 
 function RouteComponent() {
   const { data: session } = auth.useSession();
-  console.log({ session });
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -128,7 +127,6 @@ function RouteComponent() {
         });
       },
       onError: (error) => {
-        console.log({ error });
         toast.error(error.message ?? "Failed to update user");
       },
     }),
@@ -143,7 +141,6 @@ function RouteComponent() {
         });
       },
       onError: (error) => {
-        console.log({ error });
         toast.error((error as any)?.data?.message ?? "Failed to delete user");
       },
     }),

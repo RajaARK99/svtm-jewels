@@ -146,7 +146,7 @@ const UploadAttendanceDialog = ({
         jsonData.push(rowData);
       });
 
-      console.log({ jsonData });
+    
 
       if (jsonData.length < 2) {
         toast.error(

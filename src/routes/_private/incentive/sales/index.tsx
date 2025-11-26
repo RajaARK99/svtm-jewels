@@ -125,7 +125,6 @@ function RouteComponent() {
         }
       },
       onError: (error: any) => {
-        console.log({ error });
         toast.error(
           error?.data?.message ?? error?.message ?? "Failed to export excel",
         );

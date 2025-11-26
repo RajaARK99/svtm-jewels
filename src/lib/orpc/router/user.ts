@@ -115,7 +115,7 @@ const updateUser = protectedProcedure
         data: updatedUser,
       };
     } catch (error) {
-      console.log({ error });
+     
 
       throw new ORPCError("BAD_REQUEST", {
         data: {

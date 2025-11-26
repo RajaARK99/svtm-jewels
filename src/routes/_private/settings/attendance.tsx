@@ -152,7 +152,6 @@ function RouteComponent() {
         }
       },
       onError: (error: any) => {
-        console.log({ error });
         toast.error(
           error?.data?.message ??
             error?.message ??
@@ -162,7 +161,6 @@ function RouteComponent() {
     }),
   );
 
-  console.log({ data });
   // Update attendance mutation
   const updateMutation = useMutation(
     api.attendanceRouter.updateAttendance.mutationOptions({
@@ -175,7 +173,6 @@ function RouteComponent() {
         });
       },
       onError: (error) => {
-        console.log({ error });
         toast.error(error.message ?? "Failed to update attendance");
       },
     }),

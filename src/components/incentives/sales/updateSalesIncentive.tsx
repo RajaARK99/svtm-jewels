@@ -160,8 +160,8 @@ const UpdateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Gold Weight per GM"
-                      placeholder="Enter gold weight per GM"
+                      label="Gold Weight"
+                      placeholder="Enter gold weight"
                       required
                       step={0.01}
                     />
@@ -172,8 +172,8 @@ const UpdateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Coin Weight per GM"
-                      placeholder="Enter coin weight per GM"
+                      label="Coin Weight"
+                      placeholder="Enter coin weight"
                       required
                       step={0.01}
                     />
@@ -185,8 +185,8 @@ const UpdateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Diamond Weight per CT"
-                      placeholder="Enter diamond weight per CT"
+                      label="Diamond Weight"
+                      placeholder="Enter diamond weight"
                       required
                       step={0.01}
                     />
@@ -197,8 +197,8 @@ const UpdateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Silver Antique Weight per GM"
-                      placeholder="Enter silver antique weight per GM"
+                      label="Silver Antique Weight"
+                      placeholder="Enter silver antique weight"
                       required
                       step={0.01}
                     />
@@ -209,8 +209,8 @@ const UpdateSalesIncentiveDialog = ({
                 {(field) => {
                   return (
                     <field.NumberInput
-                      label="Silver Weight per GM"
-                      placeholder="Enter silver weight per GM"
+                      label="Silver Weight"
+                      placeholder="Enter silver weight"
                       required
                       step={0.01}
                     />

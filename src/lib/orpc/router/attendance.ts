@@ -111,7 +111,7 @@ const createAttendance = protectedProcedure
         message: `Successfully created attendance records for ${data.length} employee(s)`,
       };
     } catch (error) {
-      console.log({ error });
+      
 
       throw new ORPCError("BAD_REQUEST", {
         data: {

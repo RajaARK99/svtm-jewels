@@ -1251,7 +1251,7 @@ const getExcelFile = protectedProcedure
       const worksheet = workbook.addWorksheet(sanitizeSheetName(dateRangeStr));
 
       // Add title row and merge cells
-      worksheet.mergeCells(1, 1, 1, 3);
+      worksheet.mergeCells(1, 1, 1, 4);
       const titleCell = worksheet.getCell(1, 1);
       titleCell.value = `Sales Incentive ${dateRangeStr}`;
       titleCell.font = { bold: true, size: 14 };
@@ -1259,7 +1259,7 @@ const getExcelFile = protectedProcedure
 
       // Add header row
       const headerRow = worksheet.getRow(2);
-      headerRow.values = ["Employee Number", "Employee Name", "Amount"];
+      headerRow.values = ["Employee Number", "Employee Name", "Amount", "adhocallowance_Sales"];
       headerRow.font = { bold: true };
       headerRow.alignment = { horizontal: "center", vertical: "middle" };
 
@@ -1275,6 +1275,7 @@ const getExcelFile = protectedProcedure
           record.employeeNumber,
           record.employeeName,
           Number(record.totalAmount.toFixed(2)) || 0,
+          "",
         ];
       });
 
@@ -1282,6 +1283,7 @@ const getExcelFile = protectedProcedure
       worksheet.getColumn(1).width = 20; // Employee Number
       worksheet.getColumn(2).width = 30; // Employee Name
       worksheet.getColumn(3).width = 15; // Amount
+      worksheet.getColumn(4).width = 20; // adhocallowance_Sales
 
       // Convert workbook to buffer
       const excelBuffer = await workbook.xlsx.writeBuffer();
